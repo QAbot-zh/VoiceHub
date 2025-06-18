@@ -1,0 +1,1334 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <script src="https://cdn.jsdelivr.net/npm/spark-md5@3.0.2/spark-md5.min.js"></script>
+  <title>SiliconFlow | 智能语音转文字</title>
+  <style>
+    :root {
+      --primary: #4361ee;
+      --primary-hover: #3153e0;
+      --success: #22c55e;
+      --success-hover: #1db153;
+      --background: #f0f4ff;
+      --card-bg: rgba(255, 255, 255, 0.95);
+      --text-primary: #1e293b;
+      --text-secondary: #64748b;
+      --border-radius: 16px;
+      --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.08);
+      --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', 'PingFang SC', system-ui, -apple-system, sans-serif;
+      background: var(--background);
+      color: var(--text-primary);
+      line-height: 1.6;
+      min-height: 100vh;
+      padding: 20px;
+      background-image: radial-gradient(circle at 25% 30%, rgba(67, 97, 238, 0.07) 0%, transparent 80%);
+    }
+    .container { max-width: 680px; margin: 10px auto; padding: 0 10px; }
+    header { text-align: center; margin-bottom: 30px; animation: fadeIn 0.8s ease-out; }
+    h1 {
+      font-size: 2.5rem; font-weight: 700;
+      background: linear-gradient(90deg, var(--primary) 0%, #7c4dff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      position: relative;
+      display: inline-block;
+    }
+    h1::after {
+      content: "";
+      position: absolute;
+      bottom: -10px; left: 50%; transform: translateX(-50%);
+      width: 60%; height: 4px;
+      background: linear-gradient(90deg, var(--primary) 0%, #7c4dff 100%);
+      border-radius: 8px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow-sm);
+      padding: 32px;
+      margin-bottom: 30px;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+    }
+    .card:hover { box-shadow: var(--shadow-lg); }
+
+    /* 更新card-header布局 */
+    .card-header { 
+        display: flex; 
+        align-items: center; 
+        justify-content: space-between; 
+        gap: 14px; 
+        margin-bottom: 22px; 
+        color: var(--text-primary); 
+    }
+
+    /* 验证区域样式 */
+    #authSection {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-shrink: 0;
+    }
+
+    /* 验证按钮样式 */
+    .verify-btn {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        color: white;
+        border: none;
+        padding: 6px 14px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: all 0.2s;
+        box-shadow: 0 2px 6px rgba(245, 158, 11, 0.25);
+        white-space: nowrap;
+    }
+
+    .verify-btn:hover {
+        background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+        transform: translateY(-1px);
+        box-shadow: 0 3px 8px rgba(245, 158, 11, 0.3);
+    }
+
+    .verify-btn.verified {
+        background: linear-gradient(135deg, var(--success) 0%, #16a34a 100%);
+        box-shadow: 0 2px 6px rgba(34, 197, 94, 0.25);
+    }
+
+    .verify-btn.verified:hover {
+        background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+        box-shadow: 0 3px 8px rgba(34, 197, 94, 0.3);
+    }
+
+    /* 验证状态文本样式 */
+    .auth-status {
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: var(--text-secondary);
+        white-space: nowrap;
+        min-width: 60px; /* 给予一定最小宽度防止布局跳动 */
+        text-align: left;
+        transition: opacity 0.3s ease;
+    }
+
+    .auth-status.verified {
+        color: var(--success);
+    }
+
+    .auth-status.error {
+        color: #ef4444;
+    }
+
+    /* 缓存提示样式 */
+    .cache-notice {
+        background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+        border: 1px solid #86efac;
+        border-radius: 12px;
+        padding: 16px 20px;
+        margin: 16px 0;
+        display: none;
+        align-items: center;
+        gap: 12px;
+        font-size: 0.9rem;
+        color: #166534;
+        animation: slideDown 0.3s ease-out;
+    }
+
+    .cache-notice.visible {
+        display: flex;
+    }
+
+    .cache-notice-icon {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: #22c55e;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .cache-notice-icon svg {
+        width: 12px;
+        height: 12px;
+        stroke: white;
+        stroke-width: 2.5;
+    }
+
+    /* 缓存管理按钮 */
+    .cache-btn {
+        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: all 0.2s;
+        box-shadow: 0 2px 6px rgba(139, 92, 246, 0.25);
+        margin-left: 8px;
+    }
+
+    .cache-btn:hover {
+        background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+        transform: translateY(-1px);
+        box-shadow: 0 3px 8px rgba(139, 92, 246, 0.3);
+    }
+
+    /* 模态框样式 */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+    }
+
+    .modal.active {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: fadeIn 0.2s ease-out;
+    }
+
+    .modal-content {
+        background: white;
+        border-radius: 16px;
+        padding: 24px;
+        max-width: 90vw;
+        max-height: 80vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+        animation: slideUp 0.3s ease-out;
+        position: relative;
+    }
+
+    .modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .modal-header h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .close-btn {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: var(--text-secondary);
+        padding: 4px;
+        border-radius: 4px;
+        transition: all 0.2s;
+    }
+
+    .close-btn:hover {
+        background: #f1f5f9;
+        color: var(--text-primary);
+    }
+
+    /* 缓存记录表格 */
+    .cache-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 16px;
+    }
+
+    .cache-table th,
+    .cache-table td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .cache-table th {
+        background: #f8fafc;
+        font-weight: 600;
+        color: var(--text-primary);
+        font-size: 0.85rem;
+    }
+
+    .cache-table td {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+    }
+
+    .cache-table tr:hover {
+        background: #f8fafc;
+    }
+
+    .cache-actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .action-btn {
+        padding: 4px 8px;
+        border: none;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .restore-btn {
+        background: #ddd6fe;
+        color: #7c3aed;
+    }
+
+    .restore-btn:hover {
+        background: #c4b5fd;
+    }
+
+    .delete-btn {
+        background: #fecaca;
+        color: #dc2626;
+    }
+
+    .delete-btn:hover {
+        background: #fca5a5;
+    }
+
+    .text-preview {
+        max-width: 200px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        cursor: help;
+        title: attr(data-full-text);
+    }
+
+    .empty-cache {
+        text-align: center;
+        padding: 40px;
+        color: var(--text-secondary);
+    }
+
+    .clear-all-btn {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: all 0.2s;
+        margin-top: 16px;
+    }
+
+    .clear-all-btn:hover {
+        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        transform: translateY(-1px);
+    }
+
+    /* 音频提取提示样式 */
+    .audio-extraction-notice {
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        border: 1px solid #f59e0b;
+        border-radius: 12px;
+        padding: 16px 20px;
+        margin: 16px 0;
+        display: none;
+        align-items: center;
+        gap: 12px;
+        font-size: 0.9rem;
+        color: #92400e;
+        animation: slideDown 0.3s ease-out;
+    }
+
+    .audio-extraction-notice.visible {
+    display: flex;
+    }
+
+    .audio-extraction-notice .spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(245, 158, 11, 0.3);
+    border-top-color: #f59e0b;
+    }
+
+    /* 移动端响应式 */
+    @media (max-width: 768px) {
+    .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+    
+    #authSection {
+        align-self: flex-end;
+    }
+
+    .modal-content {
+        margin: 20px;
+        max-width: calc(100vw - 40px);
+    }
+
+    .cache-table {
+        font-size: 0.8rem;
+    }
+
+    .cache-table th,
+    .cache-table td {
+        padding: 8px 6px;
+    }
+
+    .text-preview {
+        max-width: 120px;
+    }
+    }
+
+    @media (max-width: 480px) {
+    .verify-btn {
+        padding: 5px 12px;
+        font-size: 0.8rem;
+    }
+    
+    .auth-status {
+        font-size: 0.8rem;
+    }
+
+    .cache-btn {
+        padding: 5px 12px;
+        font-size: 0.8rem;
+    }
+    }
+
+    .icon-box {
+      width: 48px; height: 48px; border-radius: 14px;
+      background: rgba(67, 97, 238, 0.1);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .icon-box.success { background: rgba(34,197,94,0.1); }
+    .icon-box svg { width: 24px; height: 24px; }
+
+    h2 { font-size: 1.5rem; font-weight: 600; }
+
+    .file-formats { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 22px; }
+    .format-tag {
+      background: rgba(67, 97, 238, 0.08);
+      color: var(--primary);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    /* 压缩后的上传区域 - 水平布局 */
+    .file-upload-area {
+      border: 2px dashed #c7d2fe;
+      border-radius: 12px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      transition: all 0.3s;
+      background: rgba(247, 249, 254, 0.6);
+      margin-bottom: 1px;
+      position: relative;
+    }
+    .file-upload-area:hover {
+      border-color: var(--primary);
+      background: rgba(67, 97, 238, 0.03);
+    }
+    
+    /* 压缩后的图标 */
+    .upload-icon {
+      width: 40px; 
+      height: 40px; 
+      background: rgba(67, 97, 238, 0.1);
+      border-radius: 10px; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .upload-icon svg { width: 24px; height: 24px; stroke: var(--primary); }
+
+    /* 文本提示样式 */
+    .upload-text {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    #fileInputLabel {
+      display: inline-block;
+      background: var(--primary);
+      color: white;
+      padding: 8px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+      box-shadow: 0 3px 8px rgba(67, 97, 238, 0.25);
+      flex-shrink: 0;
+    }
+    #fileInputLabel:hover {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
+    }
+    
+    #fileName {
+      margin-top: 8px;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      text-align: center;
+    }
+
+    .btn {
+      background: linear-gradient(135deg, var(--primary) 0%, #6d5ef9 100%);
+      color: white;
+      border: none;
+      padding: 14px 36px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 12px rgba(67, 97, 238, 0.2);
+    }
+    .btn:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(67,97,238,0.3); }
+    .btn:disabled { opacity: 0.7; cursor: not-allowed; }
+
+    #status {
+      display: flex; align-items: center; gap: 12px;
+      margin-top: 24px;
+      font-size: 1.05rem; color: var(--text-primary);
+      opacity: 0; height: 0;
+      transition: all 0.3s;
+    }
+    #status.active { opacity: 1; height: auto; padding-top: 20px; }
+    .spinner {
+      width: 24px; height: 24px;
+      border: 3px solid rgba(67,97,238,0.2);
+      border-top-color: var(--primary);
+      border-radius: 50%; animation: spin 1s linear infinite;
+    }
+
+    .result-container { padding: 8px 0; }
+    #result-box {
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.5s ease;
+    }
+    #result-box.active { max-height: 350px; }
+
+    /* 美化后的文本框样式 */
+    #result {
+      width: 100%; 
+      min-height: 220px;
+      padding: 24px;
+      border-radius: 16px;
+      border: 2px solid transparent;
+      background: linear-gradient(145deg, #ffffff 0%, #fafbff 100%);
+      background-clip: padding-box;
+      box-shadow: 
+        inset 0 1px 3px rgba(0, 0, 0, 0.08),
+        inset 0 0 0 1px rgba(67, 97, 238, 0.12),
+        0 4px 12px rgba(0, 0, 0, 0.05),
+        0 1px 3px rgba(0, 0, 0, 0.08);
+      font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+      font-size: 0.95rem; 
+      line-height: 1.75;
+      color: var(--text-primary);
+      resize: vertical;
+      transition: all 0.3s ease;
+      position: relative;
+      backdrop-filter: blur(4px);
+    }
+
+    /* 获得焦点时的增强样式 */
+    #result:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 
+        inset 0 1px 3px rgba(0, 0, 0, 0.08),
+        inset 0 0 0 1px var(--primary),
+        0 0 0 4px rgba(67, 97, 238, 0.15),
+        0 8px 25px rgba(67, 97, 238, 0.15),
+        0 4px 12px rgba(0, 0, 0, 0.1);
+      transform: translateY(-1px);
+    }
+
+    /* 占位符样式优化 */
+    #result::placeholder {
+      color: #9ca3af;
+      font-style: italic;
+      opacity: 0.8;
+    }
+
+    /* 自定义滚动条样式 */
+    #result::-webkit-scrollbar {
+      width: 8px;
+    }
+    #result::-webkit-scrollbar-track {
+      background: rgba(67, 97, 238, 0.05);
+      border-radius: 8px;
+    }
+    #result::-webkit-scrollbar-thumb {
+      background: linear-gradient(135deg, var(--primary) 0%, #7c4dff 100%);
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+    #result::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(135deg, var(--primary-hover) 0%, #6b46c1 100%);
+    }
+
+    /* 文本选中效果 */
+    #result::selection {
+      background: rgba(67, 97, 238, 0.2);
+      color: inherit;
+    }
+
+    /* 复制按钮同一行右侧 */
+    #copyBtn {
+      background: linear-gradient(135deg, var(--success) 0%, #00b894 100%);
+      padding: 10px 16px;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(34,197,94,0.25);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.9rem;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    #copyBtn.hidden { opacity: 0; visibility: hidden; }
+
+    #timer { font-variant-numeric: tabular-nums; font-weight: 600; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(20px);} to { opacity: 1; transform: translateY(0);} }
+    @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* 响应式设计 */
+    @media (max-width: 768px) {
+      .container { margin: 20px auto; }
+      .card { padding: 22px; }
+      h1 { font-size: 2rem; }
+      .btn { width: 100%; justify-content: center; padding: 14px; }
+      
+      /* 移动端上传区域改回垂直布局 */
+      .file-upload-area {
+        flex-direction: column;
+        padding: 16px;
+        gap: 12px;
+      }
+      
+      .upload-text {
+        white-space: normal;
+        text-align: center;
+      }
+      
+      #result {
+        min-height: 180px;
+        padding: 20px;
+        font-size: 0.9rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .file-upload-area {
+        gap: 8px;
+      }
+      
+      .upload-icon {
+        width: 36px;
+        height: 36px;
+      }
+      
+      #fileInputLabel {
+        padding: 6px 16px;
+        font-size: 0.85rem;
+      }
+      
+      .upload-text {
+        font-size: 0.9rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1><span>SiliconFlow</span> 语音转文字</h1>
+    </header>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="icon-box">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z" />
+          </svg>
+        </div>
+        <h2>上传音视频文件</h2>
+        <div id="authSection" style="display:flex; align-items:center; gap:8px;">
+          <button type="button" id="cacheBtn" class="cache-btn">缓存记录</button>
+          <button type="button" id="verifyBtn" class="verify-btn">口令验证</button>
+          <span id="authStatus" class="auth-status"></span>
+        </div>
+      </div>
+
+      <!-- 缓存提示区域 (Green) -->
+      <div id="cacheNotice" class="cache-notice">
+        <div class="cache-notice-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <span id="cacheNoticeText">该文件已转写过，从本地缓存中恢复识别结果</span>
+      </div>
+
+      <!-- 音频提取提示区域 (Amber) -->
+      <div id="extractionNotice" class="audio-extraction-notice">
+        <div class="spinner"></div>
+        <span id="extractionNoticeText">正在从视频中提取音频...</span>
+      </div>
+
+      <p>支持以下格式的音频/视频文件转换（最大文件大小：100MB）</p>
+      <div class="file-formats">
+        <div class="format-tag">MP3</div>
+        <div class="format-tag">WAV</div>
+        <div class="format-tag">PCM</div>
+        <div class="format-tag">OPUS</div>
+        <div class="format-tag">WEBM</div>
+        <div class="format-tag">MP4*</div>
+        <div class="format-tag">MOV*</div>
+        <div class="format-tag">AVI*</div>
+      </div>
+      <form id="uploadForm">
+        <div class="file-upload-area" id="dropArea">
+          <div class="upload-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
+            </svg>
+          </div>
+          <span class="upload-text">拖放文件到此处 或</span>
+          <div>
+            <input type="file" id="fileInput" name="file" accept="audio/*,video/*" required style="display: none;" />
+            <label for="fileInput" id="fileInputLabel">选择文件</label>
+          </div>
+        </div>
+        
+        <div id="fileInfoArea" style="margin-top: 8px; font-size: 0.85rem; color: var(--text-secondary); text-align: center; display: flex; align-items: center; justify-content: center; gap: 10px;">
+            <span id="fileName">未选择任何文件</span>
+            <!-- The download link will be injected here by JavaScript -->
+        </div>
+        <input type="hidden" name="model" value="FunAudioLLM/SenseVoiceSmall" />
+        <div style="margin-top: 24px; text-align: center;">
+          <button class="btn" type="submit" id="submitBtn">开始语音转写</button>
+        </div>
+      </form>
+      
+      <div id="status"><div class="spinner"></div><div>AI正在处理中... <span id="timer">0s</span></div></div>
+    </div>
+
+    <div class="result-container">
+      <div class="card-header result">
+        <div class="icon-box success"></div>
+        <h2>识别结果</h2>
+        <button id="copyBtn" class="hidden">复制</button>
+      </div>
+      <div id="result-box">
+        <textarea id="result" readonly placeholder="识别结果会显示在这里..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- 缓存管理模态框 -->
+  <div id="cacheModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>本地缓存记录</h3>
+        <button class="close-btn" id="closeModal">×</button>
+      </div>
+      <div id="cacheTableContainer">
+        <!-- 缓存记录表格将在这里动态生成 -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let isVerified = false;
+    let cacheKey = null;
+    let timerInterval;
+    let authStatusTimer; // Timer for hiding the auth status message
+    const AUTH_KEY = 'sf_auth_status';
+    const verifyBtn = document.getElementById('verifyBtn');
+    const cacheBtn = document.getElementById('cacheBtn');
+    const authStatus = document.getElementById('authStatus');
+    const uploadForm = document.getElementById('uploadForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const statusDiv = document.getElementById('status');
+    const timerSpan = document.getElementById('timer');
+    const fileInput = document.getElementById('fileInput');
+    const fileNameDiv = document.getElementById('fileName');
+    const dropArea = document.getElementById('dropArea');
+    const resultBox = document.getElementById('result-box');
+    const resultArea = document.getElementById('result');
+    const copyBtn = document.getElementById('copyBtn');
+    const cacheNotice = document.getElementById('cacheNotice');
+    const cacheNoticeText = document.getElementById('cacheNoticeText');
+    const cacheModal = document.getElementById('cacheModal');
+    const closeModal = document.getElementById('closeModal');
+    const extractionNotice = document.getElementById('extractionNotice');
+    const extractionNoticeText = document.getElementById('extractionNoticeText');
+
+    // 检查文件是否为视频格式
+    function isVideoFile(file) {
+      const videoTypes = ['video/mp4', 'video/mov', 'video/quicktime', 'video/avi', 'video/x-msvideo'];
+      return videoTypes.includes(file.type) || /\.(mp4|mov|avi|webm)$/i.test(file.name);
+    }
+
+    // 检查文件是否为支持的音频格式
+    function isSupportedAudioFile(file) {
+      const supportedTypes = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/wave', 'audio/opus', 'audio/webm'];
+      return supportedTypes.includes(file.type) || /\.(mp3|wav|opus|webm|pcm)$/i.test(file.name);
+    }
+
+    function createWavFromAudioBuffer(audioBuffer) {
+        const numChannels = audioBuffer.numberOfChannels;
+        const sampleRate = audioBuffer.sampleRate;
+        const format = 1; // PCM
+        const bitDepth = 16;
+        
+        let interleaved = new Int16Array(audioBuffer.length * numChannels);
+        let offset = 0;
+        for (let i = 0; i < audioBuffer.length; i++) {
+            for (let channel = 0; channel < numChannels; channel++) {
+                let sample = audioBuffer.getChannelData(channel)[i];
+                sample = Math.max(-1, Math.min(1, sample));
+                interleaved[offset++] = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
+            }
+        }
+
+        const buffer = new ArrayBuffer(44 + interleaved.length * 2);
+        const view = new DataView(buffer);
+
+        const writeString = (view, offset, string) => {
+            for (let i = 0; i < string.length; i++) {
+                view.setUint8(offset + i, string.charCodeAt(i));
+            }
+        };
+        
+        const blockAlign = numChannels * (bitDepth / 8);
+        const byteRate = sampleRate * blockAlign;
+        const dataSize = interleaved.length * 2;
+
+        writeString(view, 0, 'RIFF');
+        view.setUint32(4, 36 + dataSize, true);
+        writeString(view, 8, 'WAVE');
+        writeString(view, 12, 'fmt ');
+        view.setUint32(16, 16, true);
+        view.setUint16(20, format, true);
+        view.setUint16(22, numChannels, true);
+        view.setUint32(24, sampleRate, true);
+        view.setUint32(28, byteRate, true);
+        view.setUint16(32, blockAlign, true);
+        view.setUint16(34, bitDepth, true);
+        writeString(view, 36, 'data');
+        view.setUint32(40, dataSize, true);
+
+        for (let i = 0; i < interleaved.length; i++) {
+            view.setInt16(44 + i * 2, interleaved[i], true);
+        }
+
+        return new Blob([view], { type: 'audio/wav' });
+    }
+
+    async function extractAudioFromVideo(videoFile) {
+        return new Promise(async (resolve, reject) => {
+            extractionNotice.classList.add('visible');
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            try {
+                extractionNoticeText.textContent = '正在读取视频文件...';
+                const arrayBuffer = await videoFile.arrayBuffer();
+                
+                extractionNoticeText.textContent = '正在解码音频轨道...';
+                const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+                
+                const targetSampleRate = 16000;
+                const duration = audioBuffer.duration;
+                
+                extractionNoticeText.textContent = '正在处理音频（转为16kHz单声道）...';
+                const offlineContext = new OfflineAudioContext(1, duration * targetSampleRate, targetSampleRate);
+                
+                const source = offlineContext.createBufferSource();
+                source.buffer = audioBuffer;
+                source.connect(offlineContext.destination);
+                source.start();
+                
+                const renderedBuffer = await offlineContext.startRendering();
+                
+                extractionNoticeText.textContent = '正在生成WAV文件...';
+                const wavBlob = createWavFromAudioBuffer(renderedBuffer);
+                
+                resolve(wavBlob);
+            } catch (error) {
+                console.error("音频提取失败:", error);
+                let userMessage = `无法从视频中提取音频。\n\n可能原因：\n1. 视频文件没有音轨。\n2. 音频编码格式不受浏览器支持。\n\n建议：转换视频格式后再试。`;
+                reject(new Error(userMessage));
+            } finally {
+                if (audioContext.state !== 'closed') audioContext.close();
+                extractionNotice.classList.remove('visible');
+            }
+        });
+    }
+
+    function checkFileSizeAndWarn(file) {
+      const sizeMB = file.size / (1024 * 1024);
+      const maxRecommendedSize = 100; // 100MB
+      
+      if (sizeMB > maxRecommendedSize) {
+        const proceed = confirm(
+          `文件较大 (${sizeMB.toFixed(1)}MB)，提取音频可能需要较长时间。\n` +
+          `建议压缩视频或使用较小的文件。\n\n` +
+          `是否继续？`
+        );
+        return proceed;
+      }
+      return true;
+    }
+
+    function checkAuthStatus() {
+      const authData = localStorage.getItem(AUTH_KEY);
+      if (authData) {
+        try {
+          const { verified, timestamp } = JSON.parse(authData);
+          const isExpired = Date.now() - timestamp > 7 * 24 * 60 * 60 * 1000;
+          if (verified && !isExpired) {
+            isVerified = true;
+            updateAuthUI(true);
+            return;
+          }
+        } catch (e) {
+          console.error('解析认证数据失败:', e);
+        }
+      }
+      updateAuthUI(false);
+    }
+
+    function updateAuthUI(verified) {
+      if (verified) {
+        verifyBtn.textContent = '已验证';
+        verifyBtn.classList.add('verified');
+        submitBtn.disabled = !fileInput.files[0] && !fileInput.processedFile;
+      } else {
+        verifyBtn.textContent = '口令验证';
+        verifyBtn.classList.remove('verified');
+        submitBtn.disabled = true;
+      }
+      authStatus.textContent = '';
+      authStatus.className = 'auth-status';
+    }
+
+    function saveAuthStatus(verified) {
+      const authData = {
+        verified,
+        timestamp: Date.now()
+      };
+      localStorage.setItem(AUTH_KEY, JSON.stringify(authData));
+    }
+
+    verifyBtn.addEventListener('click', async () => {
+      if (isVerified) {
+        const action = confirm('当前已验证通过，是否要退出登录？');
+        if (action) {
+          isVerified = false;
+          localStorage.removeItem(AUTH_KEY);
+          updateAuthUI(false);
+        }
+        return;
+      }
+
+      const token = prompt('请输入口令：');
+      if (!token) return;
+      
+      try {
+        const res = await fetch('/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token })
+        });
+        const { valid } = await res.json();
+        
+        isVerified = valid;
+        clearTimeout(authStatusTimer);
+
+        if (valid) {
+          saveAuthStatus(true);
+          updateAuthUI(true);
+          authStatus.textContent = '验证通过';
+          authStatus.className = 'auth-status verified';
+          authStatusTimer = setTimeout(() => {
+              authStatus.textContent = '';
+              authStatus.className = 'auth-status';
+          }, 2000);
+        } else {
+          authStatus.textContent = '口令错误';
+          authStatus.className = 'auth-status error';
+          authStatusTimer = setTimeout(() => {
+              authStatus.textContent = '';
+              authStatus.className = 'auth-status';
+          }, 3000);
+        }
+      } catch (err) {
+        console.error('验证失败:', err);
+        clearTimeout(authStatusTimer);
+        authStatus.textContent = '验证失败';
+        authStatus.className = 'auth-status error';
+        authStatusTimer = setTimeout(() => {
+            authStatus.textContent = '';
+            authStatus.className = 'auth-status';
+        }, 3000);
+      }
+    });
+
+    cacheBtn.addEventListener('click', () => {
+      showCacheModal();
+    });
+
+    closeModal.addEventListener('click', () => {
+      cacheModal.classList.remove('active');
+    });
+
+    cacheModal.addEventListener('click', (e) => {
+      if (e.target === cacheModal) {
+        cacheModal.classList.remove('active');
+      }
+    });
+
+    function showCacheModal() {
+      const cacheRecords = getCacheRecords();
+      const container = document.getElementById('cacheTableContainer');
+      
+      if (cacheRecords.length === 0) {
+        container.innerHTML = `<div class="empty-cache"><p>暂无缓存记录</p></div>`;
+      } else {
+        const tableHTML = `
+          <table class="cache-table">
+            <thead>
+              <tr>
+                <th>文件名</th><th>大小</th><th>时间</th><th>识别结果预览</th><th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${cacheRecords.map((record) => `
+                <tr>
+                  <td title="${record.name}">${truncateText(record.name, 20)}</td>
+                  <td>${(record.size / 1024 / 1024).toFixed(2)}MB</td>
+                  <td>${formatDate(record.timestamp)}</td>
+                  <td class="text-preview" data-full-text="${record.text}" title="${record.text}">
+                    ${truncateText(record.text, 30)}
+                  </td>
+                  <td class="cache-actions">
+                    <button class="action-btn restore-btn" onclick="restoreRecord('${record.key}')">恢复</button>
+                    <button class="action-btn delete-btn" onclick="deleteRecord('${record.key}')">删除</button>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+          <button class="clear-all-btn" onclick="clearAllCache()">清空所有缓存</button>
+        `;
+        container.innerHTML = tableHTML;
+      }
+      
+      cacheModal.classList.add('active');
+    }
+
+    function getCacheRecords() {
+      const records = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('sf_cache_')) {
+          try {
+            const data = JSON.parse(localStorage.getItem(key));
+            records.push({ key, ...data, timestamp: data.timestamp || Date.now() });
+          } catch (e) { console.error('解析缓存记录失败:', e); }
+        }
+      }
+      return records.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+    }
+
+    function truncateText(text, maxLength) {
+      if (!text) return '';
+      return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+    }
+
+    function formatDate(timestamp) {
+      if (!timestamp) return '未知';
+      return new Date(timestamp).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+    }
+
+    window.restoreRecord = function(key) {
+      try {
+        const data = JSON.parse(localStorage.getItem(key));
+        resultArea.value = data.text;
+        resultBox.classList.add('active');
+        copyBtn.classList.remove('hidden');
+        cacheModal.classList.remove('active');
+        
+        cacheNoticeText.textContent = '该文件已转写过，从本地缓存中恢复识别结果';
+        cacheNotice.classList.add('visible');
+        setTimeout(() => { cacheNotice.classList.remove('visible'); }, 5000);
+        
+      } catch (e) { alert('恢复记录失败'); }
+    };
+
+    window.deleteRecord = function(key) {
+      if (confirm('确定要删除这个缓存记录吗？')) {
+        localStorage.removeItem(key);
+        showCacheModal();
+      }
+    };
+
+    window.clearAllCache = function() {
+      if (confirm('确定要清空所有缓存记录吗？此操作不可恢复。')) {
+        const keys = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith('sf_cache_')) {
+            keys.push(key);
+          }
+        }
+        keys.forEach(key => localStorage.removeItem(key));
+        showCacheModal();
+      }
+    };
+
+    fileInput.addEventListener('change', async () => {
+        const file = fileInput.files[0];
+        const fileInfoArea = document.getElementById('fileInfoArea');
+        fileInfoArea.innerHTML = `<span id="fileName">未选择任何文件</span>`;
+        if (!file) {
+          updateAuthUI(isVerified);
+          return;
+        }
+
+        cacheNotice.classList.remove('visible');
+        extractionNotice.classList.remove('visible');
+        
+        let processedFile = file;
+
+        try {
+            if (isVideoFile(file)) {
+                if (!checkFileSizeAndWarn(file)) { fileInput.value = ''; return; }
+                try {
+                    const startTime = Date.now();
+                    processedFile = await extractAudioFromVideo(file);
+                    const processingTime = ((Date.now() - startTime) / 1000).toFixed(1);
+                    const newSizeMB = (processedFile.size / 1024 / 1024).toFixed(2);
+                    const newName = file.name.replace(/\.[^/.]+$/, '_extracted.wav');
+                    processedFile.name = newName;
+
+                    const fileNameText = `${newName} (${newSizeMB} MB) - 提取耗时 ${processingTime}s`;
+                    const downloadLink = document.createElement('a');
+                    downloadLink.href = URL.createObjectURL(processedFile);
+                    downloadLink.download = newName;
+                    downloadLink.textContent = '下载音频';
+                    downloadLink.style.cssText = `background:#8b5cf6;color:white;padding:4px 10px;border-radius:6px;text-decoration:none;font-weight:500;`;
+                    fileInfoArea.innerHTML = `<span id="fileName">${fileNameText}</span>`;
+                    fileInfoArea.appendChild(downloadLink);
+                } catch (error) {
+                    alert(`音频提取失败: ${error.message}`);
+                    fileInput.value = '';
+                    return;
+                }
+            } else if (isSupportedAudioFile(file)) {
+                const sizeMB = (file.size / 1024 / 1024).toFixed(2);
+                document.getElementById('fileName').textContent = `${file.name} (${sizeMB} MB)`;
+            } else {
+                alert('不支持的文件格式。请上传 MP3、WAV、OPUS 等音频或 MP4、MOV 等视频文件。');
+                fileInput.value = '';
+                return;
+            }
+
+            fileInput.processedFile = processedFile;
+            fileInput.originalFile = file;
+            submitBtn.disabled = !isVerified;
+
+            const arrayBuffer = await processedFile.arrayBuffer();
+            const md5 = SparkMD5.ArrayBuffer.hash(arrayBuffer);
+            cacheKey = `sf_cache_${md5}`;
+
+            const cachedRaw = localStorage.getItem(cacheKey);
+            if (cachedRaw) {
+              try {
+                const cachedData = JSON.parse(cachedRaw);
+                const matchName = isVideoFile(file) ? file.name : processedFile.name || file.name;
+                if (cachedData.originalName === matchName) {
+                    window.restoreRecord(cacheKey);
+                    return;
+                }
+                resultBox.classList.remove('active');
+                copyBtn.classList.add('hidden');
+                updateAuthUI(isVerified);
+              } catch (e) {
+                console.error('解析缓存失败:', e);
+              }
+            }
+
+            resultBox.classList.remove('active');
+            copyBtn.classList.add('hidden');
+
+        } catch (error) {
+            console.error('文件处理失败:', error);
+            extractionNotice.classList.remove('visible');
+            alert('文件处理失败：' + error.message);
+            fileInput.value = '';
+        }
+    });
+
+    ['dragenter','dragover'].forEach(evt => dropArea.addEventListener(evt, e => { 
+      e.preventDefault(); 
+      dropArea.classList.add('hover'); 
+    }));
+    
+    ['dragleave','drop'].forEach(evt => dropArea.addEventListener(evt, e => { 
+      e.preventDefault(); 
+      dropArea.classList.remove('hover'); 
+    }));
+    
+    dropArea.addEventListener('drop', e => {
+      const files = e.dataTransfer.files;
+      if (files.length) { 
+        fileInput.files = files; 
+        fileInput.dispatchEvent(new Event('change')); 
+      }
+    });
+
+    statusDiv.classList.remove('active');
+    resultBox.classList.remove('active');
+    checkAuthStatus();
+
+    uploadForm.addEventListener('submit', async e => {
+      e.preventDefault();
+      
+      if (!isVerified) {
+        alert('请先完成口令验证');
+        return;
+      }
+      
+      const cachedRaw = localStorage.getItem(cacheKey);
+      if (cacheKey && cachedRaw) {
+        try {
+          const cachedData = JSON.parse(cachedRaw);
+          const originalFile = fileInput.originalFile || fileInput.files[0];
+          if (cachedData.originalName === originalFile.name) {
+              console.log('转写请求被拦截，直接从缓存恢复。');
+              window.restoreRecord(cacheKey);
+              return;
+          }
+        } catch (err) {
+            console.error("提交时检查缓存出错:", err);
+        }
+      }
+
+      cacheNotice.classList.remove('visible');
+      
+      submitBtn.disabled = true;
+      resultArea.value = '';
+      copyBtn.classList.add('hidden');
+      resultBox.classList.remove('active');
+      statusDiv.classList.add('active');
+
+      let seconds = 0;
+      timerSpan.textContent = '0s';
+      timerInterval = setInterval(() => { 
+        seconds++; 
+        timerSpan.textContent = `${seconds}s`; 
+      }, 1000);
+
+      try {
+        const formData = new FormData(uploadForm);
+        formData.delete('file');
+        
+        const fileToUpload = fileInput.processedFile || fileInput.files[0];
+        const originalFile = fileInput.originalFile || fileInput.files[0];
+
+        formData.append('file', fileToUpload, fileToUpload.name || 'extracted_audio.wav');
+
+        const res = await fetch('/transcribe', { method: 'POST', body: formData });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        
+        const data = await res.json();
+        resultArea.value = data.text;
+
+        resultBox.classList.add('active');
+        copyBtn.classList.remove('hidden');
+        
+        if (cacheKey) {
+          const payload = {
+            name: fileToUpload.name || 'extracted_audio.wav',
+            originalName: originalFile.name,
+            size: fileToUpload.size,
+            text: data.text,
+            timestamp: Date.now(),
+            isExtracted: !!fileInput.processedFile
+            };
+          localStorage.setItem(cacheKey, JSON.stringify(payload));
+        }
+        
+      } catch (err) {
+        console.error('转写失败:', err);
+        resultArea.value = '转写失败：' + err.message;
+        resultBox.classList.add('active');
+      } finally {
+        clearInterval(timerInterval);
+        statusDiv.classList.remove('active');
+        submitBtn.disabled = false;
+      }
+    });
+
+    copyBtn.addEventListener('click', () => {
+      if (!resultArea.value) return;
+      navigator.clipboard.writeText(resultArea.value).then(() => {
+        const originalText = copyBtn.textContent;
+        copyBtn.textContent = '已复制';
+        setTimeout(() => { copyBtn.textContent = originalText; }, 2000);
+      }).catch(err => {
+        console.error('复制失败:', err);
+        resultArea.select();
+        document.execCommand('copy');
+        copyBtn.textContent = '已复制';
+        setTimeout(() => { copyBtn.textContent = '复制'; }, 2000);
+      });
+    });
+  </script>
+</body>
+</html>
