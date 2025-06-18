@@ -1,0 +1,9 @@
+name               = "siliconflow-stt"     
+project            = "siliconflow-stt"   
+compatibility_date = "2025-06-18" 
+
+[build]
+directory = "public" 
+
+[functions]
+directory = "functions"
