@@ -422,6 +422,42 @@
             border-top-color: #f59e0b;
         }
 
+        .file-formats {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .format-row {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .format-tag {
+            padding: 0.25em 0.5em;
+            border-radius: 0.25rem;
+            color: #fff;
+            font-size: 0.875rem;
+        }
+
+        /* 直接上传的音频：淡绿色背景，深绿色文字 */
+        .format-tag.audio {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        /* 需要转换的音频：淡橙色背景，深橙色文字 */
+        .format-tag.convert.audio {
+            background-color: #fff3e0;
+            color: #e65100;
+        }
+
+        /* 需要转换的视频：淡蓝色背景，深蓝色文字 */
+        .format-tag.convert.video {
+            background-color: #e3f2fd;
+            color: #0d47a1;
+        }
+
         @media (max-width: 480px) {
             .verify-btn {
                 padding: 5px 12px;
@@ -903,16 +939,28 @@
                 <span id="extractionNoticeText">正在从视频中提取音频...</span>
             </div>
 
-            <p>支持以下格式的音频/视频文件转换（最大文件大小：100MB）</p>
+            <p>支持以下格式的音频/视频文件转换（建议文件限制：100MB）</p>
             <div class="file-formats">
-                <div class="format-tag">MP3</div>
-                <div class="format-tag">WAV</div>
-                <div class="format-tag">PCM</div>
-                <div class="format-tag">OPUS</div>
-                <div class="format-tag">WEBM</div>
-                <div class="format-tag">MP4*</div>
-                <div class="format-tag">MOV*</div>
-                <div class="format-tag">AVI*</div>
+                <!-- 第一行：直接上传 -->
+                <div class="format-row">
+                    <div class="format-tag audio">MP3</div>
+                    <div class="format-tag audio">WAV</div>
+                    <div class="format-tag audio">PCM</div>
+                    <div class="format-tag audio">OPUS</div>
+                    <div class="format-tag audio">WEBM</div>
+                </div>
+                <!-- 第二行：需要格式转换（带 *）-->
+                <div class="format-row">
+                    <!-- 音频转换 -->
+                    <div class="format-tag convert audio">M4A*</div>
+                    <div class="format-tag convert audio">AAC*</div>
+                    <div class="format-tag convert audio">FLAC*</div>
+                    <div class="format-tag convert audio">OGG*</div>
+                    <!-- 视频转换 -->
+                    <div class="format-tag convert video">MP4*</div>
+                    <div class="format-tag convert video">MOV*</div>
+                    <div class="format-tag convert video">AVI*</div>
+                </div>
             </div>
             <form id="uploadForm">
                 <div class="file-upload-area" id="dropArea">
@@ -1006,8 +1054,13 @@
 
         // 检查文件是否为支持的音频格式
         function isSupportedAudioFile(file) {
-            const supportedTypes = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/wave', 'audio/opus', 'audio/webm'];
-            return supportedTypes.includes(file.type) || /\.(mp3|wav|opus|webm|pcm)$/i.test(file.name);
+            const supportedTypes = [
+                'audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/wave',
+                'audio/opus', 'audio/webm',
+                'audio/mp4', 'audio/x-m4a', 'audio/aac'
+            ];
+            const extPattern = /\.(mp3|wav|opus|webm|pcm|m4a|aac)$/i;
+            return supportedTypes.includes(file.type) || extPattern.test(file.name);
         }
 
         function createWavFromAudioBuffer(audioBuffer) {
@@ -1359,11 +1412,26 @@
                         fileInput.value = '';
                         return;
                     }
+                    // 2. 浏览器可解码的音频 → 解码成 AudioBuffer，再编码成 WAV
+                } else if (/\.(m4a|aac|flac|ogg)$/i.test(file.name)) {
+                    fileInfoArea.innerHTML = `<span id="fileName">正在转换 ${file.name} …</span>`;
+                    const arrayBuffer = await file.arrayBuffer();
+                    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+                    const wavBlob = createWavFromAudioBuffer(audioBuffer);  // 实现见 :contentReference[oaicite:5]{index=5}
+                    wavBlob.name = file.name.replace(/\.[^/.]+$/, '.wav');
+                    processedFile = wavBlob;
+                    const sizeMB = (processedFile.size / 1024 / 1024).toFixed(2);
+                    fileInfoArea.innerHTML = `<span id="fileName">${processedFile.name} (${sizeMB} MB) - 已转换为 WAV</span>`;
+
+                    // 3. 原先支持的纯音频格式：直接显示
                 } else if (isSupportedAudioFile(file)) {
                     const sizeMB = (file.size / 1024 / 1024).toFixed(2);
                     document.getElementById('fileName').textContent = `${file.name} (${sizeMB} MB)`;
+
+                    // 4. 其他格式：提示不支持
                 } else {
-                    alert('不支持的文件格式。请上传 MP3、WAV、OPUS 等音频或 MP4、MOV 等视频文件。');
+                    alert('不支持的文件格式。请上传 MP3、WAV、OPUS、WEBM、M4A、AAC、FLAC、OGG 等音频，或 MP4、MOV、AVI 等视频文件。');
                     fileInput.value = '';
                     return;
                 }
