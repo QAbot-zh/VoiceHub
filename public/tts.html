@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>OpenAI | 智能文本转语音</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <a href="/" class="page-switch-link" title="切换到语音转文字 (STT)">
+        <!-- <svg viewBox="0 0 24 24" version="1.0" aria-hidden="true">
+            <path d="M6.99 11L3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z"/>
+        </svg> -->
+        <!-- <div class="icon-box"> -->
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z" />
+            </svg>
+        <!-- </div> -->
+        <!-- <span>(STT)</span> -->
+    </a>
+    <a href="https://github.com/QAbot-zh/VoiceHub" target="_blank" rel="noopener noreferrer" class="github-link"
+        title="查看 GitHub 仓库">
+        <svg viewBox="0 0 16 16" version="1.1" aria-hidden="true">
+            <path fill-rule="evenodd"
+                d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.67.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z">
+            </path>
+        </svg>
+    </a>
+    <div class="container">
+        <header>
+            <h1><span>OpenAI</span> 文本转语音</h1>
+        </header>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="icon-box">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" />
+                    </svg>
+                </div>
+                <h2>输入文本并选择参数</h2>
+                 <div id="authSection" style="display:flex; align-items:center; gap:8px;">
+                    <button type="button" id="verifyBtn" class="verify-btn">口令验证</button>
+                </div>
+            </div>
+
+            <form id="ttsForm">
+                <div class="form-group">
+                    <label for="textInput">输入文本 (最多 4000 字符)</label>
+                    <textarea id="textInput" name="textInput" placeholder="在此输入要转换为语音的文本..." required></textarea>
+                    <div id="charCount">0 / 4000</div>
+                </div>
+
+                <div class="parameter-controls-row">
+                    <div class="form-group">
+                        <label for="modelSelect">选择模型</label>
+                        <select id="modelSelect" name="model">
+                            <option value="gpt-4o-mini-tts">GPT-4o Mini TTS (推荐)</option>
+                            <option value="tts-1">TTS-1 (标准)</option>
+                            <option value="tts-1-hd">TTS-1-HD (高清)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="voiceSelect">选择声音</label>
+                        <select id="voiceSelect" name="voice">
+                            <option value="alloy">Alloy (均衡百搭：通用)</option>
+                            <option value="ash">Ash (清晰明了：商务)</option>
+                            <option value="ballad">Ballad (平滑悦耳：故事)</option>
+                            <option value="coral">Coral (温暖友好：教程)</option>
+                            <option value="echo">Echo (洪亮清晰：公告)</option>
+                            <option value="fable">Fable (生动活力：娱乐)</option>
+                            <option value="nova">Nova (朝气蓬勃：营销)</option>
+                            <option value="onyx">Onyx (深沉权威：新闻)</option>
+                            <option value="sage">Sage (睿智沉稳：教育)</option>
+                            <option value="shimmer">Shimmer (轻快空灵：休闲)</option>
+                            <option value="verse">Verse (抑扬顿挫：诗歌)</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 24px; text-align: center;">
+                    <button class="btn" type="submit" id="submitBtn">开始语音合成</button>
+                </div>
+            </form>
+
+            <div id="status">
+                <div class="spinner"></div>
+                <div>AI正在合成中...</div>
+            </div>
+        </div>
+
+        <div id="resultContainer" class="result-container card">
+             <div class="card-header result">
+                <div class="icon-box success">
+                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 9l10.5-3m0 6.553v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 11-.99-3.467l2.31-.66a2.25 2.25 0 001.632-2.163zm0 0V2.25L9 5.25v10.303m0 0v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 01-.99-3.467l2.31-.66A2.25 2.25 0 009 15.553z" />
+                    </svg>
+                </div>
+                <h2>合成结果</h2>
+                <a id="downloadBtn" href="#" download="speech.mp3">下载音频</a>
+            </div>
+            <audio id="audioPlayer" controls></audio>
+        </div>
+    </div>
+
+    <script>
+        let isVerified = false;
+        const AUTH_KEY = 'SF_AUTH_TOKEN'; // Same key as STT page
+        const MAX_CHARS = 4000;
+
+        const verifyBtn = document.getElementById('verifyBtn');
+        const ttsForm = document.getElementById('ttsForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const statusDiv = document.getElementById('status');
+        const textInput = document.getElementById('textInput');
+        const modelSelect = document.getElementById('modelSelect');
+        const voiceSelect = document.getElementById('voiceSelect');
+        const charCountDiv = document.getElementById('charCount');
+        
+        const resultContainer = document.getElementById('resultContainer');
+        const audioPlayer = document.getElementById('audioPlayer');
+        const downloadBtn = document.getElementById('downloadBtn');
+
+        function checkAuthStatus() {
+            const authToken = localStorage.getItem(AUTH_KEY);
+            if (authToken) {
+                const [tsStr] = authToken.split('.');
+                const ts = parseInt(tsStr, 10) * 1000;
+                const isExpired = (Date.now() - ts) > 30 * 24 * 60 * 60 * 1000;
+                isVerified = !isExpired;
+                updateAuthUI(isVerified);
+            } else {
+                updateAuthUI(false);
+            }
+        }
+
+        function updateAuthUI(verified) {
+            if (verified) {
+                verifyBtn.textContent = '口令已验证';
+                verifyBtn.classList.add('verified');
+                submitBtn.disabled = false;
+            } else {
+                verifyBtn.textContent = '口令未验证或过期';
+                verifyBtn.classList.remove('verified');
+                submitBtn.disabled = true;
+            }
+        }
+        
+        verifyBtn.addEventListener('click', async () => {
+            if (isVerified) {
+                const action = confirm('当前已验证通过，是否要退出登录？');
+                if (action) {
+                    isVerified = false;
+                    localStorage.removeItem(AUTH_KEY);
+                    updateAuthUI(false);
+                }
+                return;
+            }
+
+            const tokenPrompt = prompt('请输入口令：');
+            if (!tokenPrompt) return;
+
+            try {
+                // Assuming your verify endpoint is at /verify (same as STT)
+                const res = await fetch('/verify', { 
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token: tokenPrompt })
+                });
+                const { valid, auth_token } = await res.json();
+                isVerified = valid;
+
+                if (valid) {
+                    localStorage.setItem(AUTH_KEY, auth_token);
+                    updateAuthUI(true);
+                } else {
+                    alert('口令错误');
+                }
+            } catch (err) {
+                console.error('验证失败:', err);
+                alert('验证失败，请稍后再试');
+            }
+        });
+
+        textInput.addEventListener('input', () => {
+            const count = textInput.value.length;
+            charCountDiv.textContent = `${count} / ${MAX_CHARS}`;
+            if (count > MAX_CHARS) {
+                charCountDiv.style.color = 'red';
+                submitBtn.disabled = true;
+            } else {
+                charCountDiv.style.color = 'var(--text-secondary)';
+                if(isVerified) submitBtn.disabled = false;
+            }
+        });
+
+        ttsForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!isVerified) {
+                alert('请先完成口令验证');
+                return;
+            }
+
+            const text = textInput.value.trim();
+            if (!text) {
+                alert('请输入要合成的文本');
+                return;
+            }
+            if (text.length > MAX_CHARS) {
+                alert(`文本超过最大长度 ${MAX_CHARS} 字符`);
+                return;
+            }
+
+            const model = modelSelect.value;
+            const voice = voiceSelect.value;
+            const authToken = localStorage.getItem(AUTH_KEY);
+
+            submitBtn.disabled = true;
+            statusDiv.classList.add('active');
+            resultContainer.classList.remove('active');
+            downloadBtn.classList.remove('visible');
+            audioPlayer.src = '';
+
+
+            try {
+                // This will be the new worker endpoint for TTS
+                const response = await fetch('/speech', { 
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Auth-Token': authToken 
+                    },
+                    body: JSON.stringify({
+                        model: model,
+                        input: text,
+                        voice: voice
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ error: '合成失败，无法解析错误信息。' }));
+                    throw new Error(errorData.error || `合成失败 (状态码: ${response.status})`);
+                }
+                
+                const audioBlob = await response.blob();
+                const audioUrl = URL.createObjectURL(audioBlob);
+                audioPlayer.src = audioUrl;
+
+                // Attempt to play audio immediately
+                audioPlayer.play().catch(error => {
+                    console.warn("Autoplay was prevented:", error);
+                });
+                
+                // Determine file extension based on content type
+                const contentType = response.headers.get("Content-Type");
+                let fileExtension = "mp3"; // Default
+                if (contentType === "audio/mpeg") {
+                    fileExtension = "mp3";
+                } else if (contentType === "audio/wav") {
+                    fileExtension = "wav";
+                } else if (contentType === "audio/opus") {
+                    fileExtension = "opus";
+                } else if (contentType === "audio/flac") {
+                    fileExtension = "flac";
+                }
+                
+                downloadBtn.href = audioUrl;
+                downloadBtn.download = `speech.${fileExtension}`;
+                
+                resultContainer.classList.add('active');
+                downloadBtn.classList.add('visible');
+
+            } catch (err) {
+                console.error('语音合成出错:', err);
+                alert(`错误: ${err.message}`);
+                resultContainer.classList.remove('active');
+            } finally {
+                statusDiv.classList.remove('active');
+                 if(isVerified && textInput.value.length <= MAX_CHARS) {
+                    submitBtn.disabled = false;
+                }
+            }
+        });
+
+        // Initial check
+        checkAuthStatus();
+        charCountDiv.textContent = `0 / ${MAX_CHARS}`; // Initialize char count
+    </script>
+</body>
+</html>

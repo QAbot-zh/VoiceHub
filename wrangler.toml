@@ -1,6 +1,6 @@
-name               = "siliconflow-stt"     
-project            = "siliconflow-stt"   
-compatibility_date = "2025-06-18" 
+name               = "voiceub"     
+project            = "voicehub"   
+compatibility_date = "2025-06-24" 
 
 [build]
 directory = "public" 

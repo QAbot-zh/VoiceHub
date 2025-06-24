@@ -6,892 +6,16 @@
     <meta name="viewport" content="width=device-width,initial-scale=1.0" />
     <script src="https://cdn.jsdelivr.net/npm/spark-md5@3.0.2/spark-md5.min.js"></script>
     <title>SiliconFlow | 智能语音转文字</title>
-    <style>
-        :root {
-            --primary: #4361ee;
-            --primary-hover: #3153e0;
-            --success: #22c55e;
-            --success-hover: #1db153;
-            --background: #f0f4ff;
-            --card-bg: rgba(255, 255, 255, 0.95);
-            --text-primary: #1e293b;
-            --text-secondary: #64748b;
-            --border-radius: 16px;
-            --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.08);
-            --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: 'Segoe UI', 'PingFang SC', system-ui, -apple-system, sans-serif;
-            background: var(--background);
-            color: var(--text-primary);
-            line-height: 1.6;
-            min-height: 100vh;
-            padding: 20px;
-            background-image: radial-gradient(circle at 25% 30%, rgba(67, 97, 238, 0.07) 0%, transparent 80%);
-        }
-
-        /* GitHub Link in top-right corner */
-        .github-link {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1001;
-            /* Higher than modal backdrop */
-            transition: transform 0.2s ease-in-out;
-        }
-
-        .github-link:hover {
-            transform: scale(1.1);
-        }
-
-        .github-link svg {
-            width: 32px;
-            height: 32px;
-            fill: var(--text-secondary);
-            transition: fill 0.2s ease-in-out;
-        }
-
-        .github-link:hover svg {
-            fill: var(--text-primary);
-        }
-
-        .container {
-            max-width: 680px;
-            margin: 10px auto;
-            padding: 0 10px;
-        }
-
-        header {
-            text-align: center;
-            margin-bottom: 30px;
-            animation: fadeIn 0.8s ease-out;
-        }
-
-        h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            background: linear-gradient(90deg, var(--primary) 0%, #7c4dff 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            position: relative;
-            display: inline-block;
-        }
-
-        h1::after {
-            content: "";
-            position: absolute;
-            bottom: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 60%;
-            height: 4px;
-            background: linear-gradient(90deg, var(--primary) 0%, #7c4dff 100%);
-            border-radius: 8px;
-        }
-
-        .card {
-            background: var(--card-bg);
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow-sm);
-            padding: 32px;
-            margin-bottom: 30px;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.6);
-        }
-
-        .card:hover {
-            box-shadow: var(--shadow-lg);
-        }
-
-        /* 更新card-header布局 */
-        .card-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 14px;
-            margin-bottom: 22px;
-            color: var(--text-primary);
-        }
-
-        /* 验证区域样式 */
-        #authSection {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-shrink: 0;
-        }
-
-        /* 验证按钮样式 */
-        .verify-btn {
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-            color: white;
-            border: none;
-            padding: 6px 14px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            font-weight: 500;
-            transition: all 0.2s;
-            box-shadow: 0 2px 6px rgba(245, 158, 11, 0.25);
-            white-space: nowrap;
-        }
-
-        .verify-btn:hover {
-            background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
-            transform: translateY(-1px);
-            box-shadow: 0 3px 8px rgba(245, 158, 11, 0.3);
-        }
-
-        .verify-btn.verified {
-            background: linear-gradient(135deg, var(--success) 0%, #16a34a 100%);
-            box-shadow: 0 2px 6px rgba(34, 197, 94, 0.25);
-        }
-
-        .verify-btn.verified:hover {
-            background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
-            box-shadow: 0 3px 8px rgba(34, 197, 94, 0.3);
-        }
-
-        /* 验证状态文本样式 */
-        .auth-status {
-            font-size: 0.85rem;
-            font-weight: 500;
-            color: var(--text-secondary);
-            white-space: nowrap;
-            min-width: 60px;
-            /* 给予一定最小宽度防止布局跳动 */
-            text-align: left;
-            transition: opacity 0.3s ease;
-        }
-
-        .auth-status.verified {
-            color: var(--success);
-        }
-
-        .auth-status.error {
-            color: #ef4444;
-        }
-
-        /* 缓存提示样式 */
-        .cache-notice {
-            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
-            border: 1px solid #86efac;
-            border-radius: 12px;
-            padding: 16px 20px;
-            margin: 16px 0;
-            display: none;
-            align-items: center;
-            gap: 12px;
-            font-size: 0.9rem;
-            color: #166534;
-            animation: slideDown 0.3s ease-out;
-        }
-
-        .cache-notice.visible {
-            display: flex;
-        }
-
-        .cache-notice-icon {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: #22c55e;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-
-        .cache-notice-icon svg {
-            width: 12px;
-            height: 12px;
-            stroke: white;
-            stroke-width: 2.5;
-        }
-
-        /* 缓存管理按钮 */
-        .cache-btn {
-            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            font-weight: 500;
-            transition: all 0.2s;
-            box-shadow: 0 2px 6px rgba(139, 92, 246, 0.25);
-            margin-left: 8px;
-        }
-
-        .cache-btn:hover {
-            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
-            transform: translateY(-1px);
-            box-shadow: 0 3px 8px rgba(139, 92, 246, 0.3);
-        }
-
-        /* 模态框样式 */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(4px);
-        }
-
-        .modal.active {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            animation: fadeIn 0.2s ease-out;
-        }
-
-        .modal-content {
-            background: white;
-            border-radius: 16px;
-            padding: 24px;
-            max-width: 90vw;
-            max-height: 80vh;
-            overflow-y: auto;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
-            animation: slideUp 0.3s ease-out;
-            position: relative;
-        }
-
-        .modal-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 20px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid #e2e8f0;
-        }
-
-        .modal-header h3 {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .close-btn {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: var(--text-secondary);
-            padding: 4px;
-            border-radius: 4px;
-            transition: all 0.2s;
-        }
-
-        .close-btn:hover {
-            background: #f1f5f9;
-            color: var(--text-primary);
-        }
-
-        /* 缓存记录表格 */
-        .cache-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 16px;
-        }
-
-        .cache-table th,
-        .cache-table td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #e2e8f0;
-        }
-
-        .cache-table th {
-            background: #f8fafc;
-            font-weight: 600;
-            color: var(--text-primary);
-            font-size: 0.85rem;
-        }
-
-        .cache-table td {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-        }
-
-        .cache-table tr:hover {
-            background: #f8fafc;
-        }
-
-        .cache-actions {
-            display: flex;
-            gap: 8px;
-        }
-
-        .action-btn {
-            padding: 4px 8px;
-            border: none;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .restore-btn {
-            background: #ddd6fe;
-            color: #7c3aed;
-        }
-
-        .restore-btn:hover {
-            background: #c4b5fd;
-        }
-
-        .delete-btn {
-            background: #fecaca;
-            color: #dc2626;
-        }
-
-        .delete-btn:hover {
-            background: #fca5a5;
-        }
-
-        .text-preview {
-            max-width: 200px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            cursor: help;
-            title: attr(data-full-text);
-        }
-
-        .empty-cache {
-            text-align: center;
-            padding: 40px;
-            color: var(--text-secondary);
-        }
-
-        .clear-all-btn {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            font-weight: 500;
-            transition: all 0.2s;
-            margin-top: 16px;
-        }
-
-        .clear-all-btn:hover {
-            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-            transform: translateY(-1px);
-        }
-
-        /* 音频提取提示样式 */
-        .audio-extraction-notice {
-            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-            border: 1px solid #f59e0b;
-            border-radius: 12px;
-            padding: 16px 20px;
-            margin: 16px 0;
-            display: none;
-            align-items: center;
-            gap: 12px;
-            font-size: 0.9rem;
-            color: #92400e;
-            animation: slideDown 0.3s ease-out;
-        }
-
-        .audio-extraction-notice.visible {
-            display: flex;
-        }
-
-        .audio-extraction-notice .spinner {
-            width: 20px;
-            height: 20px;
-            border: 2px solid rgba(245, 158, 11, 0.3);
-            border-top-color: #f59e0b;
-        }
-
-        .file-formats {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .format-row {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .format-tag {
-            padding: 0.25em 0.5em;
-            border-radius: 0.25rem;
-            color: #fff;
-            font-size: 0.875rem;
-        }
-
-        /* 直接上传的音频：淡绿色背景，深绿色文字 */
-        .format-tag.audio {
-            background-color: #e8f5e9;
-            color: #2e7d32;
-        }
-
-        /* 需要转换的音频：淡橙色背景，深橙色文字 */
-        .format-tag.convert.audio {
-            background-color: #fff3e0;
-            color: #e65100;
-        }
-
-        /* 需要转换的视频：淡蓝色背景，深蓝色文字 */
-        .format-tag.convert.video {
-            background-color: #e3f2fd;
-            color: #0d47a1;
-        }
-
-        @media (max-width: 480px) {
-            .verify-btn {
-                padding: 5px 12px;
-                font-size: 0.8rem;
-            }
-
-            .auth-status {
-                font-size: 0.8rem;
-            }
-
-            .cache-btn {
-                padding: 5px 12px;
-                font-size: 0.8rem;
-            }
-        }
-
-        .icon-box {
-            width: 48px;
-            height: 48px;
-            border-radius: 14px;
-            background: rgba(67, 97, 238, 0.1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .icon-box.success {
-            background: rgba(34, 197, 94, 0.1);
-        }
-
-        .icon-box svg {
-            width: 24px;
-            height: 24px;
-        }
-
-        h2 {
-            font-size: 1.5rem;
-            font-weight: 600;
-        }
-
-        .file-formats {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin: 18px 0 22px;
-        }
-
-        .format-tag {
-            background: rgba(67, 97, 238, 0.08);
-            color: var(--primary);
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            font-weight: 500;
-        }
-
-        /* 压缩后的上传区域 - 水平布局 */
-        .file-upload-area {
-            border: 2px dashed #c7d2fe;
-            border-radius: 12px;
-            padding: 16px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 16px;
-            transition: all 0.3s;
-            background: rgba(247, 249, 254, 0.6);
-            margin-bottom: 1px;
-            position: relative;
-        }
-
-        .file-upload-area:hover {
-            border-color: var(--primary);
-            background: rgba(67, 97, 238, 0.03);
-        }
-
-        /* 压缩后的图标 */
-        .upload-icon {
-            width: 40px;
-            height: 40px;
-            background: rgba(67, 97, 238, 0.1);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-
-        .upload-icon svg {
-            width: 24px;
-            height: 24px;
-            stroke: var(--primary);
-        }
-
-        /* 文本提示样式 */
-        .upload-text {
-            color: var(--text-secondary);
-            font-size: 0.95rem;
-            white-space: nowrap;
-            flex-shrink: 0;
-        }
-
-        #fileInputLabel {
-            display: inline-block;
-            background: var(--primary);
-            color: white;
-            padding: 8px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 500;
-            font-size: 0.9rem;
-            transition: all 0.2s;
-            box-shadow: 0 3px 8px rgba(67, 97, 238, 0.25);
-            flex-shrink: 0;
-        }
-
-        #fileInputLabel:hover {
-            background: var(--primary-hover);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
-        }
-
-        #fileName {
-            margin-top: 8px;
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            text-align: center;
-        }
-
-        .btn {
-            background: linear-gradient(135deg, var(--primary) 0%, #6d5ef9 100%);
-            color: white;
-            border: none;
-            padding: 14px 36px;
-            border-radius: 12px;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 600;
-            transition: all 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.2);
-        }
-
-        .btn:hover:not(:disabled) {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(67, 97, 238, 0.3);
-        }
-
-        .btn:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
-        }
-
-        #status {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-top: 24px;
-            font-size: 1.05rem;
-            color: var(--text-primary);
-            opacity: 0;
-            height: 0;
-            transition: all 0.3s;
-        }
-
-        #status.active {
-            opacity: 1;
-            height: auto;
-            padding-top: 20px;
-        }
-
-        .spinner {
-            width: 24px;
-            height: 24px;
-            border: 3px solid rgba(67, 97, 238, 0.2);
-            border-top-color: var(--primary);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        .result-container {
-            padding: 8px 0;
-        }
-
-        #result-box {
-            overflow: hidden;
-            max-height: 0;
-            transition: max-height 0.5s ease;
-        }
-
-        #result-box.active {
-            max-height: 350px;
-        }
-
-        /* 美化后的文本框样式 */
-        #result {
-            width: 100%;
-            min-height: 220px;
-            padding: 24px;
-            border-radius: 16px;
-            border: 2px solid transparent;
-            background: linear-gradient(145deg, #ffffff 0%, #fafbff 100%);
-            background-clip: padding-box;
-            box-shadow:
-                inset 0 1px 3px rgba(0, 0, 0, 0.08),
-                inset 0 0 0 1px rgba(67, 97, 238, 0.12),
-                0 4px 12px rgba(0, 0, 0, 0.05),
-                0 1px 3px rgba(0, 0, 0, 0.08);
-            font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
-            font-size: 0.95rem;
-            line-height: 1.75;
-            color: var(--text-primary);
-            resize: vertical;
-            transition: all 0.3s ease;
-            position: relative;
-            backdrop-filter: blur(4px);
-        }
-
-        /* 获得焦点时的增强样式 */
-        #result:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow:
-                inset 0 1px 3px rgba(0, 0, 0, 0.08),
-                inset 0 0 0 1px var(--primary),
-                0 0 0 4px rgba(67, 97, 238, 0.15),
-                0 8px 25px rgba(67, 97, 238, 0.15),
-                0 4px 12px rgba(0, 0, 0, 0.1);
-            transform: translateY(-1px);
-        }
-
-        /* 占位符样式优化 */
-        #result::placeholder {
-            color: #9ca3af;
-            font-style: italic;
-            opacity: 0.8;
-        }
-
-        /* 自定义滚动条样式 */
-        #result::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        #result::-webkit-scrollbar-track {
-            background: rgba(67, 97, 238, 0.05);
-            border-radius: 8px;
-        }
-
-        #result::-webkit-scrollbar-thumb {
-            background: linear-gradient(135deg, var(--primary) 0%, #7c4dff 100%);
-            border-radius: 8px;
-            transition: all 0.2s;
-        }
-
-        #result::-webkit-scrollbar-thumb:hover {
-            background: linear-gradient(135deg, var(--primary-hover) 0%, #6b46c1 100%);
-        }
-
-        /* 文本选中效果 */
-        #result::selection {
-            background: rgba(67, 97, 238, 0.2);
-            color: inherit;
-        }
-
-        /* 复制按钮同一行右侧 */
-        #copyBtn {
-            background: linear-gradient(135deg, var(--success) 0%, #00b894 100%);
-            padding: 10px 16px;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(34, 197, 94, 0.25);
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 0.9rem;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-
-        #copyBtn.hidden {
-            opacity: 0;
-            visibility: hidden;
-        }
-
-        #timer {
-            font-variant-numeric: tabular-nums;
-            font-weight: 600;
-        }
-
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* 响应式设计 */
-        @media (max-width: 768px) {
-            .github-link {
-                top: 15px;
-                right: 15px;
-            }
-
-            .github-link svg {
-                width: 28px;
-                height: 28px;
-            }
-
-            .card-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 16px;
-            }
-
-            #authSection {
-                align-self: flex-end;
-            }
-
-            .modal-content {
-                margin: 20px;
-                max-width: calc(100vw - 40px);
-            }
-
-            .cache-table {
-                font-size: 0.8rem;
-            }
-
-            .cache-table th,
-            .cache-table td {
-                padding: 8px 6px;
-            }
-
-            .text-preview {
-                max-width: 120px;
-            }
-
-            .container {
-                margin: 20px auto;
-            }
-
-            .card {
-                padding: 22px;
-            }
-
-            h1 {
-                font-size: 2rem;
-            }
-
-            .btn {
-                width: 100%;
-                justify-content: center;
-                padding: 14px;
-            }
-
-            /* 移动端上传区域改回垂直布局 */
-            .file-upload-area {
-                flex-direction: column;
-                padding: 16px;
-                gap: 12px;
-            }
-
-            .upload-text {
-                white-space: normal;
-                text-align: center;
-            }
-
-            #result {
-                min-height: 180px;
-                padding: 20px;
-                font-size: 0.9rem;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .file-upload-area {
-                gap: 8px;
-            }
-
-            .upload-icon {
-                width: 36px;
-                height: 36px;
-            }
-
-            #fileInputLabel {
-                padding: 6px 16px;
-                font-size: 0.85rem;
-            }
-
-            .upload-text {
-                font-size: 0.9rem;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-    <a href="https://github.com/QAbot-zh/siliconflow-stt" target="_blank" rel="noopener noreferrer" class="github-link"
+    <a href="tts.html" class="page-switch-link" title="切换到文本转语音 (TTS)">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" />
+        </svg>
+    </a>
+    <a href="https://github.com/QAbot-zh/VoiceHub" target="_blank" rel="noopener noreferrer" class="github-link"
         title="查看 GitHub 仓库">
         <svg viewBox="0 0 16 16" version="1.1" aria-hidden="true">
             <path fill-rule="evenodd"
@@ -899,6 +23,7 @@
             </path>
         </svg>
     </a>
+
     <div class="container">
         <header>
             <h1><span>SiliconFlow</span> 语音转文字</h1>
@@ -917,7 +42,7 @@
                 <div id="authSection" style="display:flex; align-items:center; gap:8px;">
                     <button type="button" id="cacheBtn" class="cache-btn">缓存记录</button>
                     <button type="button" id="verifyBtn" class="verify-btn">口令验证</button>
-                    <span id="authStatus" class="auth-status"></span>
+                    <!-- <span id="authStatus" class="auth-status"></span> REMOVED -->
                 </div>
             </div>
 
@@ -1024,11 +149,10 @@
         let isVerified = false;
         let cacheKey = null;
         let timerInterval;
-        let authStatusTimer; // Timer for hiding the auth status message
-        const AUTH_KEY = 'sf_auth_status';
+        // let authStatusTimer; // REMOVED: Timer for hiding the auth status message
+        const AUTH_KEY = 'SF_AUTH_TOKEN';
         const verifyBtn = document.getElementById('verifyBtn');
         const cacheBtn = document.getElementById('cacheBtn');
-        const authStatus = document.getElementById('authStatus');
         const uploadForm = document.getElementById('uploadForm');
         const submitBtn = document.getElementById('submitBtn');
         const statusDiv = document.getElementById('status');
@@ -1168,35 +292,31 @@
         }
 
         function checkAuthStatus() {
-            const authData = localStorage.getItem(AUTH_KEY);
-            if (authData) {
-                try {
-                    const { verified, timestamp } = JSON.parse(authData);
-                    const isExpired = Date.now() - timestamp > 7 * 24 * 60 * 60 * 1000;
-                    if (verified && !isExpired) {
-                        isVerified = true;
-                        updateAuthUI(true);
-                        return;
-                    }
-                } catch (e) {
-                    console.error('解析认证数据失败:', e);
-                }
+            const authToken = localStorage.getItem(AUTH_KEY);
+            if (authToken) {
+                // authToken 格式："<ts>.<sig>"
+                const [tsStr] = authToken.split('.');
+                const ts = parseInt(tsStr, 10) * 1000; // 转成毫秒
+                // 一月过期：30 天 * 24 小时 * 60 分 * 60 秒 * 1000 毫秒
+                const isExpired = (Date.now() - ts) > 30 * 24 * 60 * 60 * 1000;
+                isVerified = !isExpired;
+                updateAuthUI(isVerified);
+                console.log('Auth status loaded:', isVerified);
+                return;
             }
             updateAuthUI(false);
         }
 
         function updateAuthUI(verified) {
             if (verified) {
-                verifyBtn.textContent = '已验证';
+                verifyBtn.textContent = '口令已验证';
                 verifyBtn.classList.add('verified');
                 submitBtn.disabled = !fileInput.files[0] && !fileInput.processedFile;
             } else {
-                verifyBtn.textContent = '口令验证';
+                verifyBtn.textContent = '口令未验证或过期';
                 verifyBtn.classList.remove('verified');
                 submitBtn.disabled = true;
             }
-            authStatus.textContent = '';
-            authStatus.className = 'auth-status';
         }
 
         function saveAuthStatus(verified) {
@@ -1227,37 +347,20 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ token })
                 });
-                const { valid } = await res.json();
+                const { valid, auth_token } = await res.json();
 
                 isVerified = valid;
-                clearTimeout(authStatusTimer);
 
                 if (valid) {
                     saveAuthStatus(true);
                     updateAuthUI(true);
-                    authStatus.textContent = '验证通过';
-                    authStatus.className = 'auth-status verified';
-                    authStatusTimer = setTimeout(() => {
-                        authStatus.textContent = '';
-                        authStatus.className = 'auth-status';
-                    }, 2000);
+                    localStorage.setItem(AUTH_KEY, auth_token);
                 } else {
-                    authStatus.textContent = '口令错误';
-                    authStatus.className = 'auth-status error';
-                    authStatusTimer = setTimeout(() => {
-                        authStatus.textContent = '';
-                        authStatus.className = 'auth-status';
-                    }, 3000);
+                     alert('口令错误'); // Added simple alert for feedback
                 }
             } catch (err) {
                 console.error('验证失败:', err);
-                clearTimeout(authStatusTimer);
-                authStatus.textContent = '验证失败';
-                authStatus.className = 'auth-status error';
-                authStatusTimer = setTimeout(() => {
-                    authStatus.textContent = '';
-                    authStatus.className = 'auth-status';
-                }, 3000);
+                alert('验证失败，请稍后再试'); // Added simple alert for feedback
             }
         });
 
@@ -1418,7 +521,7 @@
                     const arrayBuffer = await file.arrayBuffer();
                     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                     const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-                    const wavBlob = createWavFromAudioBuffer(audioBuffer);  // 实现见 :contentReference[oaicite:5]{index=5}
+                    const wavBlob = createWavFromAudioBuffer(audioBuffer);  
                     wavBlob.name = file.name.replace(/\.[^/.]+$/, '.wav');
                     processedFile = wavBlob;
                     const sizeMB = (processedFile.size / 1024 / 1024).toFixed(2);
@@ -1501,7 +604,11 @@
                 alert('请先完成口令验证');
                 return;
             }
-
+            const formData = new FormData(uploadForm);
+            const token = localStorage.getItem(AUTH_KEY);
+            if (token) {
+                formData.append('auth_token', token);
+            }
             const cachedRaw = localStorage.getItem(cacheKey);
             if (cacheKey && cachedRaw) {
                 try {
@@ -1533,7 +640,6 @@
             }, 1000);
 
             try {
-                const formData = new FormData(uploadForm);
                 formData.delete('file');
 
                 const fileToUpload = fileInput.processedFile || fileInput.files[0];
@@ -1542,7 +648,17 @@
                 formData.append('file', fileToUpload, fileToUpload.name || 'extracted_audio.wav');
 
                 const res = await fetch('/transcribe', { method: 'POST', body: formData });
-                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                if (!res.ok) {
+                    let errorMessage = `转写失败，HTTP 状态码：${res.status}`;
+                    try {
+                        const errorData = await res.json();
+                        errorMessage += ` - ${errorData.message || errorData.error || '未知错误'}`;
+                    } catch (error) {
+                        const errorText = await res.text();
+                        errorMessage += ` - ${errorText}`;
+                    }
+                    throw new Error(errorMessage);
+                }
 
                 const data = await res.json();
                 resultArea.value = data.text;
@@ -1563,8 +679,8 @@
                 }
 
             } catch (err) {
-                console.error('转写失败:', err);
-                resultArea.value = '转写失败：' + err.message;
+                console.error(err.message);
+                resultArea.value = err.message;
                 resultBox.classList.add('active');
             } finally {
                 clearInterval(timerInterval);
