@@ -103,7 +103,7 @@ export async function onRequestPost({ request, env }) {
 
   if (!isGemini) {
     const apiKeys = (env.TTS_API_KEYS || '')
-      .split(',')
+      .split(/[\s,]+/)
       .map(k => k.trim())
       .filter(Boolean);
 
@@ -113,7 +113,7 @@ export async function onRequestPost({ request, env }) {
         headers: { 'Content-Type': 'application/json' },
       });
     }
-    const randomKey = apiKeys[Math.floor(Math.random() * apiKeys.length)];
+    const randomKey = apiKeys[Math.floor(Math.random() * apiKeys.length)].trim();
 
     // —— Step 3: Call OpenAI TTS API ——
     const OpenAIApiUrl = env.TTS_ENDPOINT || "https://api.openai.com/v1/audio/speech"; // Default to OpenAI TTS endpoint if not set
@@ -170,7 +170,7 @@ export async function onRequestPost({ request, env }) {
     // —— Gemini Flash TTS ——
 
     const apiKeys = (env.GEMINI_API_KEYS || '')
-      .split(',')
+      .split(/[\s,]+/)
       .map(k => k.trim())
       .filter(Boolean);
 
@@ -180,7 +180,7 @@ export async function onRequestPost({ request, env }) {
         headers: { 'Content-Type': 'application/json' },
       });
     }
-    const randomKey = apiKeys[Math.floor(Math.random() * apiKeys.length)];
+    const randomKey = apiKeys[Math.floor(Math.random() * apiKeys.length)].trim();
     try {
       // const gUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${randomKey}`;
       const gBaseUrl = env.GEMINI_BASEURL || 'https://generativelanguage.googleapis.com';
