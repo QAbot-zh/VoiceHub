@@ -4,23 +4,17 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-    <title>OpenAI | 智能文本转语音</title>
+    <title> LLM | 智能文本转语音</title>
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
     <a href="/" class="page-switch-link" title="切换到语音转文字 (STT)">
-        <!-- <svg viewBox="0 0 24 24" version="1.0" aria-hidden="true">
-            <path d="M6.99 11L3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z"/>
-        </svg> -->
-        <!-- <div class="icon-box"> -->
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z" />
-            </svg>
-        <!-- </div> -->
-        <!-- <span>(STT)</span> -->
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+            stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round"
+                d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z" />
+        </svg>
     </a>
     <a href="https://github.com/QAbot-zh/VoiceHub" target="_blank" rel="noopener noreferrer" class="github-link"
         title="查看 GitHub 仓库">
@@ -32,57 +26,55 @@
     </a>
     <div class="container">
         <header>
-            <h1><span>OpenAI</span> 文本转语音</h1>
+            <h1><span>LLM</span> 文本转语音</h1>
         </header>
 
         <div class="card">
             <div class="card-header">
                 <div class="icon-box">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" />
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" />
                     </svg>
                 </div>
                 <h2>输入文本并选择参数</h2>
-                 <div id="authSection" style="display:flex; align-items:center; gap:8px;">
+                <div id="authSection" style="display:flex; align-items:center; gap:8px;">
                     <button type="button" id="verifyBtn" class="verify-btn">口令验证</button>
                 </div>
             </div>
 
             <form id="ttsForm">
                 <div class="form-group">
-                    <label for="textInput">输入文本 (最多 4000 字符)</label>
-                    <textarea id="textInput" name="textInput" placeholder="在此输入要转换为语音的文本..." required></textarea>
-                    <div id="charCount">0 / 4000</div>
+                    <label for="textInput">输入文本 (建议长度适中)</label>
+                    <textarea id="textInput" name="textInput" placeholder="在此输入要转换为语音的文本，过长的文本可能导致合成失败或响应缓慢..."
+                        required></textarea>
+                    <div id="charCount">0</div>
                 </div>
 
                 <div class="parameter-controls-row">
                     <div class="form-group">
                         <label for="modelSelect">选择模型</label>
                         <select id="modelSelect" name="model">
-                            <option value="gpt-4o-mini-tts">GPT-4o Mini TTS (推荐)</option>
-                            <option value="tts-1">TTS-1 (标准)</option>
-                            <option value="tts-1-hd">TTS-1-HD (高清)</option>
+                            <optgroup label="OpenAI TTS" id="openai-models">
+                                <option value="gpt-4o-mini-tts">GPT-4o Mini TTS (推荐)</option>
+                                <option value="tts-1">TTS-1 (标准)</option>
+                                <option value="tts-1-hd">TTS-1-HD (高清)</option>
+                            </optgroup>
+
+                            <optgroup label="Google Gemini" id="gemini-models">
+                                <option value="gemini-2.5-flash-preview-tts">Gemini 2.5 Flash TTS</option>
+                            </optgroup>
                         </select>
                     </div>
 
                     <div class="form-group">
                         <label for="voiceSelect">选择声音</label>
                         <select id="voiceSelect" name="voice">
-                            <option value="alloy">Alloy (均衡百搭：通用)</option>
-                            <option value="ash">Ash (清晰明了：商务)</option>
-                            <option value="ballad">Ballad (平滑悦耳：故事)</option>
-                            <option value="coral">Coral (温暖友好：教程)</option>
-                            <option value="echo">Echo (洪亮清晰：公告)</option>
-                            <option value="fable">Fable (生动活力：娱乐)</option>
-                            <option value="nova">Nova (朝气蓬勃：营销)</option>
-                            <option value="onyx">Onyx (深沉权威：新闻)</option>
-                            <option value="sage">Sage (睿智沉稳：教育)</option>
-                            <option value="shimmer">Shimmer (轻快空灵：休闲)</option>
-                            <option value="verse">Verse (抑扬顿挫：诗歌)</option>
                         </select>
                     </div>
                 </div>
-                
+
                 <div style="margin-top: 24px; text-align: center;">
                     <button class="btn" type="submit" id="submitBtn">开始语音合成</button>
                 </div>
@@ -90,15 +82,17 @@
 
             <div id="status">
                 <div class="spinner"></div>
-                <div>AI正在合成中...</div>
+                <div>AI正在合成中...<span id="timer">0s</span></div>
             </div>
         </div>
 
         <div id="resultContainer" class="result-container card">
-             <div class="card-header result">
+            <div class="card-header result">
                 <div class="icon-box success">
-                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 9l10.5-3m0 6.553v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 11-.99-3.467l2.31-.66a2.25 2.25 0 001.632-2.163zm0 0V2.25L9 5.25v10.303m0 0v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 01-.99-3.467l2.31-.66A2.25 2.25 0 009 15.553z" />
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M9 9l10.5-3m0 6.553v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 11-.99-3.467l2.31-.66a2.25 2.25 0 001.632-2.163zm0 0V2.25L9 5.25v10.303m0 0v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 01-.99-3.467l2.31-.66A2.25 2.25 0 009 15.553z" />
                     </svg>
                 </div>
                 <h2>合成结果</h2>
@@ -110,8 +104,8 @@
 
     <script>
         let isVerified = false;
-        const AUTH_KEY = 'SF_AUTH_TOKEN'; // Same key as STT page
-        const MAX_CHARS = 4000;
+        let timerInterval;
+        const AUTH_KEY = 'SF_AUTH_TOKEN';
 
         const verifyBtn = document.getElementById('verifyBtn');
         const ttsForm = document.getElementById('ttsForm');
@@ -120,11 +114,73 @@
         const textInput = document.getElementById('textInput');
         const modelSelect = document.getElementById('modelSelect');
         const voiceSelect = document.getElementById('voiceSelect');
+        const openaiOptgroup = document.getElementById('openai-models');
+        const geminiOptgroup = document.getElementById('gemini-models');
         const charCountDiv = document.getElementById('charCount');
-        
+        const timerSpan = document.getElementById('timer');
+
         const resultContainer = document.getElementById('resultContainer');
         const audioPlayer = document.getElementById('audioPlayer');
         const downloadBtn = document.getElementById('downloadBtn');
+
+        const voiceMap = {
+            openai: [
+                { value: "alloy", label: "Alloy – 均衡百搭·通用" },
+                { value: "ash", label: "Ash – 清晰明了·商务" },
+                { value: "ballad", label: "Ballad – 平滑悦耳·故事" },
+                { value: "coral", label: "Coral – 温暖友好·教程" },
+                { value: "echo", label: "Echo – 洪亮清晰·公告" },
+                { value: "fable", label: "Fable – 生动活力·娱乐" },
+                { value: "nova", label: "Nova – 朝气蓬勃·营销" },
+                { value: "onyx", label: "Onyx – 深沉权威·新闻" },
+                { value: "sage", label: "Sage – 睿智沉稳·教育" },
+                { value: "shimmer", label: "Shimmer – 轻快空灵·休闲" },
+                { value: "verse", label: "Verse – 抑扬顿挫·诗歌" },
+            ],
+            gemini: [
+                { value: "Zephyr", label: "Zephyr – 明亮·高音" },
+                { value: "Puck", label: "Puck – 乐观·中音" },
+                { value: "Charon", label: "Charon – 信息丰富·低音" },
+                { value: "Kore", label: "Kore – 坚定·中音" },
+                { value: "Fenrir", label: "Fenrir – 兴奋·偏低中音" },
+                { value: "Leda", label: "Leda – 年轻·高音" },
+                { value: "Orus", label: "Orus – 坚定·偏低中音" },
+                { value: "Aoede", label: "Aoede – 轻盈·中音" },
+                { value: "Callirrhoe", label: "Callirrhoe – 随和·中音" },
+                { value: "Autonoe", label: "Autonoe – 明亮·中音" },
+                { value: "Enceladus", label: "Enceladus – 通透气息·低音" },
+                { value: "Iapetus", label: "Iapetus – 清晰·偏低中音" },
+                { value: "Umbriel", label: "Umbriel – 随和·偏低中音" },
+                { value: "Algieba", label: "Algieba – 圆润·低音" },
+                { value: "Despina", label: "Despina – 圆润·中音" },
+                { value: "Erinome", label: "Erinome – 清晰·中音" },
+                { value: "Algenib", label: "Algenib – 沙哑·低音" },
+                { value: "Rasalgethi", label: "Rasalgethi – 信息丰富·中音" },
+                { value: "Laomedeia", label: "Laomedeia – 乐观·高音" },
+                { value: "Achernar", label: "Achernar – 柔和·高音" },
+                { value: "Alnilam", label: "Alnilam – 坚定·偏低中音" },
+                { value: "Schedar", label: "Schedar – 均衡·偏低中音" },
+                { value: "Gacrux", label: "Gacrux – 沉稳·中音" },
+                { value: "Pulcherrima", label: "Pulcherrima – 主动·中音" },
+                { value: "Achird", label: "Achird – 友好·偏低中音" },
+                { value: "Zubenelgenubi", label: "Zubenelgenubi – 休闲·偏低中音" },
+                { value: "Vindemiatrix", label: "Vindemiatrix – 温和·中音" },
+                { value: "Sadachbia", label: "Sadachbia – 活泼·低音" },
+                { value: "Sadaltager", label: "Sadaltager – 博学·中音" },
+                { value: "Sulafat", label: "Sulafat – 温暖·中音" },
+            ]
+        };
+        function refreshVoices() {
+            const isGemini = modelSelect.value.startsWith("gemini");
+            const list = isGemini ? voiceMap.gemini : voiceMap.openai;
+
+            voiceSelect.innerHTML = list
+                .map(({ value, label }) => `<option value="${value}">${label}</option>`)
+                .join("");
+        }
+
+        modelSelect.addEventListener("change", refreshVoices);
+        refreshVoices();
 
         function checkAuthStatus() {
             const authToken = localStorage.getItem(AUTH_KEY);
@@ -150,7 +206,7 @@
                 submitBtn.disabled = true;
             }
         }
-        
+
         verifyBtn.addEventListener('click', async () => {
             if (isVerified) {
                 const action = confirm('当前已验证通过，是否要退出登录？');
@@ -167,7 +223,7 @@
 
             try {
                 // Assuming your verify endpoint is at /verify (same as STT)
-                const res = await fetch('/verify', { 
+                const res = await fetch('/verify', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ token: tokenPrompt })
@@ -189,13 +245,9 @@
 
         textInput.addEventListener('input', () => {
             const count = textInput.value.length;
-            charCountDiv.textContent = `${count} / ${MAX_CHARS}`;
-            if (count > MAX_CHARS) {
-                charCountDiv.style.color = 'red';
-                submitBtn.disabled = true;
-            } else {
-                charCountDiv.style.color = 'var(--text-secondary)';
-                if(isVerified) submitBtn.disabled = false;
+            charCountDiv.textContent = `${count}`;
+            if (isVerified) {
+                submitBtn.disabled = false;
             }
         });
 
@@ -211,10 +263,6 @@
                 alert('请输入要合成的文本');
                 return;
             }
-            if (text.length > MAX_CHARS) {
-                alert(`文本超过最大长度 ${MAX_CHARS} 字符`);
-                return;
-            }
 
             const model = modelSelect.value;
             const voice = voiceSelect.value;
@@ -226,14 +274,21 @@
             downloadBtn.classList.remove('visible');
             audioPlayer.src = '';
 
+            let seconds = 0;
+            timerSpan.textContent = '0s';
+            timerInterval = setInterval(() => {
+                seconds++;
+                timerSpan.textContent = `${seconds}s`;
+            }, 1000);
+
 
             try {
                 // This will be the new worker endpoint for TTS
-                const response = await fetch('/speech', { 
+                const response = await fetch('/speech', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-Auth-Token': authToken 
+                        'X-Auth-Token': authToken
                     },
                     body: JSON.stringify({
                         model: model,
@@ -246,7 +301,7 @@
                     const errorData = await response.json().catch(() => ({ error: '合成失败，无法解析错误信息。' }));
                     throw new Error(errorData.error || `合成失败 (状态码: ${response.status})`);
                 }
-                
+
                 const audioBlob = await response.blob();
                 const audioUrl = URL.createObjectURL(audioBlob);
                 audioPlayer.src = audioUrl;
@@ -255,7 +310,7 @@
                 audioPlayer.play().catch(error => {
                     console.warn("Autoplay was prevented:", error);
                 });
-                
+
                 // Determine file extension based on content type
                 const contentType = response.headers.get("Content-Type");
                 let fileExtension = "mp3"; // Default
@@ -268,10 +323,10 @@
                 } else if (contentType === "audio/flac") {
                     fileExtension = "flac";
                 }
-                
+
                 downloadBtn.href = audioUrl;
                 downloadBtn.download = `speech.${fileExtension}`;
-                
+
                 resultContainer.classList.add('active');
                 downloadBtn.classList.add('visible');
 
@@ -280,16 +335,60 @@
                 alert(`错误: ${err.message}`);
                 resultContainer.classList.remove('active');
             } finally {
+                clearInterval(timerInterval);
                 statusDiv.classList.remove('active');
-                 if(isVerified && textInput.value.length <= MAX_CHARS) {
+                if (isVerified) {
                     submitBtn.disabled = false;
                 }
             }
         });
 
+        async function initializeAvailableModels() {
+            try {
+                const response = await fetch('/config');
+                if (!response.ok) {
+                    throw new Error(`Server responded with status: ${response.status}`);
+                }
+                const config = await response.json();
+
+                // Hide or show model groups based on server configuration
+                openaiOptgroup.style.display = config.openai ? '' : 'none';
+                geminiOptgroup.style.display = config.gemini ? '' : 'none';
+
+                // Handle the case where no models are available at all
+                if (!config.openai && !config.gemini) {
+                    modelSelect.innerHTML = '<option value="">无可用模型</option>';
+                    modelSelect.disabled = true;
+                    voiceSelect.disabled = true;
+                    submitBtn.disabled = true;
+                    alert('错误：服务器未配置任何TTS模型API密钥。请联系管理员。');
+                    return; // Stop further processing
+                }
+
+                // If the currently selected model is now hidden, select the first available one
+                const selectedOption = modelSelect.options[modelSelect.selectedIndex];
+                if (selectedOption.parentElement.style.display === 'none') {
+                    const firstVisibleOption = modelSelect.querySelector('option:not([disabled])');
+                    if(firstVisibleOption) {
+                        modelSelect.value = firstVisibleOption.value;
+                    }
+                }
+                
+                // Finally, refresh the voice list for the correctly selected model
+                refreshVoices();
+
+            } catch (error) {
+                console.error("Failed to load model configuration:", error);
+                alert("无法加载模型配置，某些模型可能无法使用。请刷新页面重试。");
+                // We can let the user proceed, but they might encounter errors.
+            }
+        }
+        initializeAvailableModels();
+
         // Initial check
         checkAuthStatus();
-        charCountDiv.textContent = `0 / ${MAX_CHARS}`; // Initialize char count
+        charCountDiv.textContent = `0`; // Initialize char count
     </script>
 </body>
+
 </html>

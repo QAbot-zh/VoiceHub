@@ -48,7 +48,9 @@ VoiceHub 是一个基于 Cloudflare Pages 的 AI 语音服务，集成了语音�
 | `SILICONFLOW_API_KEYS`| 用于 SiliconFlow STT (语音转文字) 服务的 API 密钥。支持多个密钥，用英文逗号 `,` 分隔。  | `"sk-sfkey1,sk-sfkey2"`                      | **必需** (用于 STT) |
 | `AUTH_SECRET`        | 签名加密密钥，用于授权后续的 STT 和 TTS 请求。建议随机字符串。 | `"a_very_strong_and_random_secret_string"`   | **必需**            |
 | `TTS_API_KEYS`       | TTS API 密钥 (例如 OpenAI API Key)。支持多个密钥，用英文逗号 `,` 分隔。   | `"sk-oaikkey1,sk-oaikkey2"`                  | **必需** (用于 TTS) |
-| `TTS_ENDPOINT`       | (可选) TTS 服务的自定义 API 端点。如果未设置，后端将默认使用 OpenAI 的标准 TTS API 端点 (`https://api.openai.com/v1/audio/speech`)。 | `"https://your-custom-tts-api.com/v1/speech"`| 可选                |
+| `TTS_ENDPOINT`       | (可选) TTS 服务的自定义 API 端点。如果未设置，后端将默认使用 OpenAI 的标准 TTS API 端点 (`https://api.openai.com/v1/audio/speech`)。 | `"https://your-custom-tts-api.com/v1/speech"`| 可选  |
+| `GEMINI_API_KEYS`    | GEMINI TTS API 密钥。支持多个密钥，用英文逗号 `,` 分隔。   | `"AIabcd,AI1234"`                  | 可选 (仅用于 Gemini TTS) |
+| `GEMINI_BASEURL`     | (可选) Gemini TTS 服务的自定义 API 端点。如果未设置，后端将默认使用 Gemini 的标准 TTS API 端点 (`https://generativelanguage.googleapis.com`)。 | `"https://generativelanguage.googleapis.com"`| 可选  |
 
 ## 部署 🛠️
 
@@ -68,6 +70,8 @@ VoiceHub 是一个基于 Cloudflare Pages 的 AI 语音服务，集成了语音�
     wrangler pages secret put SILICONFLOW_API_KEYS --project-name voicehub
     wrangler pages secret put TTS_API_KEYS --project-name voicehub
     wrangler pages secret put TTS_ENDPOINT --project-name voicehub （可选）
+    wrangler pages secret put GEMINI_API_KEYS --project-name voicehub （可选，若不需要使用 gemini tts）
+    wrangler pages secret put GEMINI_BASEURL --project-name voicehub （可选）
     ```
   - 执行部署
     ```bash
@@ -81,8 +85,10 @@ VoiceHub 是一个基于 Cloudflare Pages 的 AI 语音服务，集成了语音�
     - 口令变量 Key: VERIFY_TOKENS
     - 签名加密字符串:  AUTH_SECRET
     - 硅基密钥 Key: SILICONFLOW_API_KEYS
-    - TTS 密钥 Key: TTS_API_KEYS
-    - TTS 端点（可选）：TTS_ENDPOINT
+    - OpenAI TTS 密钥 Key: TTS_API_KEYS
+    - OpenAI TTS 端点（可选）：TTS_ENDPOINT
+    - Gemini TTS 密钥 Key: GEMINI_API_KEYS
+    - Gemini TTS 端点（可选）：GEMINI_BASEURL
   - Push 代码到配置的分支，Pages 会自动拉取、构建并部署。
 
 ## 使用截图 📸
