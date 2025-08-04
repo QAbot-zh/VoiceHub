@@ -519,3 +519,209 @@ h2 {
     .parameter-controls-row .form-group { margin-bottom: 20px; }
     .parameter-controls-row .form-group:last-child { margin-bottom: 0; }
 }
+
+/* ===== Gemini 提示与示例（美化与风格统一）===== */
+.tip {
+    margin: 18px 0;
+    border-radius: 12px;
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.7) 0%, rgba(250, 251, 255, 0.8) 100%);
+    border: 1px solid rgba(67, 97, 238, 0.15);
+    box-shadow: var(--shadow-sm); /* Using the global shadow variable */
+    padding: 12px 16px;
+    transition: box-shadow 0.3s ease;
+}
+
+.tip:hover {
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* The clickable summary line */
+.tip>summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    list-style: none; /* Remove default marker */
+}
+
+.tip>summary::-webkit-details-marker {
+    display: none;
+}
+
+/* Custom dropdown arrow */
+.tip>summary::after {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid var(--text-secondary);
+    border-bottom: 2px solid var(--text-secondary);
+    transform: rotate(-45deg); /* Points right > */
+    transition: transform 0.25s ease-in-out;
+    margin-left: auto; /* Pushes arrow to the far right */
+}
+
+.tip[open]>summary::after {
+    transform: rotate(45deg); /* Points down v */
+}
+
+.tip-body {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(67, 97, 238, 0.1);
+    font-size: 0.95rem;
+    color: var(--text-primary);
+}
+
+/* Quick-add prefix buttons */
+.tip .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 10px 0 12px;
+}
+
+.tip .chip {
+    background: rgba(67, 97, 238, 0.08);
+    color: var(--primary);
+    border: 1px solid rgba(67, 97, 238, 0.2);
+    border-radius: 999px; /* Pill shape */
+    padding: 6px 14px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 2px rgba(67, 97, 238, 0.1);
+    cursor: pointer;
+}
+
+.tip .chip:hover {
+    background: rgba(67, 97, 238, 0.12);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(67, 97, 238, 0.15);
+}
+
+/* Note at the bottom of the tip */
+.tip .note {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    margin-top: 16px;
+    background: rgba(100, 116, 139, 0.05);
+    padding: 8px 12px;
+    border-radius: 8px;
+}
+
+/* Container for each text example */
+.example-box {
+    border: 1px solid #eaf0f6;
+    border-radius: 12px;
+    padding: 16px;
+    margin: 16px 0;
+    background: #f8fafc; /* A slightly off-white bg for texture */
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.example-title {
+    font-weight: 600;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* The readonly textarea with example text */
+.example {
+    width: 100%;
+    min-height: 84px;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #dfe3e8; /* Matches other form inputs */
+    background: #fff; /* White background to stand out from the box */
+    font-family: 'SF Mono', 'Cascadia Code', 'Roboto Mono', Consolas, ui-monospace, monospace;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    resize: vertical;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.example:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+}
+
+/* Container for the action buttons below each example */
+.example-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+}
+
+/* Generic style for both buttons */
+.example-actions .example-insert,
+.example-actions .example-copy {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-grow: 1; /* Helps with alignment on mobile */
+    text-align: center;
+}
+
+/* Primary "Insert" button */
+.example-actions .example-insert {
+    background: linear-gradient(135deg, var(--primary) 0%, #6d5ef9 100%);
+    color: #fff;
+    border: none;
+    box-shadow: 0 3px 8px rgba(67, 97, 238, 0.2);
+}
+
+.example-actions .example-insert:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(67, 97, 238, 0.25);
+}
+
+/* Secondary "Copy" button */
+.example-actions .example-copy {
+    background: #fff;
+    color: var(--text-primary);
+    border: 1px solid #d1d5db;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.example-actions .example-copy:hover {
+    background: #f8fafc;
+    border-color: #c5cbd2;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.07);
+}
+
+
+/* Responsive adjustments for the tip section (self-contained) */
+@media (max-width: 768px) {
+    .tip {
+        padding: 10px 12px;
+    }
+
+    .tip .chips {
+        gap: 8px;
+    }
+
+    .example-box {
+        padding: 12px;
+    }
+
+    .example-actions {
+        gap: 8px;
+    }
+
+    /* Make buttons take up more space and be easier to tap */
+    .example-actions .example-insert,
+    .example-actions .example-copy {
+        flex: 1 1 100px;
+    }
+}

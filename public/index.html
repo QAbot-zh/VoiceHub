@@ -312,10 +312,12 @@
                 verifyBtn.textContent = '口令已验证';
                 verifyBtn.classList.add('verified');
                 submitBtn.disabled = !fileInput.files[0] && !fileInput.processedFile;
+                submitBtn.title = '';
             } else {
                 verifyBtn.textContent = '口令未验证或过期';
                 verifyBtn.classList.remove('verified');
                 submitBtn.disabled = true;
+                submitBtn.title = '请先完成口令验证';
             }
         }
 

@@ -74,7 +74,57 @@
                         </select>
                     </div>
                 </div>
+                <!-- Gemini TTS 风格提示 -->
+                <details id="gemini-style-tip" class="tip hidden">
+                <summary>💡 Gemini TTS 支持风格控制（点此展开示例）</summary>
+                <div class="tip-body">
+                    <p>在文本前添加自然语言指令即可控制<strong>语气、语言、节奏、音调</strong>等。</p>
 
+                    <!-- 一键前缀（可选） -->
+                    <h4 style="margin-top:12px">一键前缀</h4>
+                    <div class="chips">
+                    <button type="button" class="chip" data-style="Say cheerfully: ">愉快</button>
+                    <button type="button" class="chip" data-style="Speak in a calm, storytelling tone: ">叙事</button>
+                    <button type="button" class="chip" data-style="Use a slow pace with a gentle whisper: ">轻声慢速</button>
+                    <button type="button" class="chip" data-style="With a British accent: ">英式口音</button>
+                    </div>
+
+                    <h4 style="margin-top:12px">高级示例</h4>
+                    <!-- 控制内容 -->
+                    <div class="example-box">
+                    <div class="example-title">控制内容</div>
+                    <textarea class="example" readonly rows="4">First say, "全民制作人大家好，我是练习时长两年半的个人练习生哈基米", with a brief laugh, then after two seconds say, "喜欢唱、跳、rap、篮球".</textarea>
+                    <div class="example-actions">
+                        <button type="button" class="example-insert">插入到文本框</button>
+                        <button type="button" class="example-copy">复制</button>
+                    </div>
+                    </div>
+
+                    <!-- 指定语言 -->
+                    <div class="example-box">
+                    <div class="example-title">指定语言</div>
+                    <textarea class="example" readonly rows="4">用粤语合成这段话： 
+"全民制作人大家好，我是练习时长两年半的个人练习生哈基米,喜欢唱、跳、rap、篮球"</textarea>
+                    <div class="example-actions">
+                        <button type="button" class="example-insert">插入到文本框</button>
+                        <button type="button" class="example-copy">复制</button>
+                    </div>
+                    </div>
+
+                    <!-- 指定风格 -->
+                    <div class="example-box">
+                        <div class="example-title">指定风格（极快语速）</div>
+                        <textarea class="example" readonly rows="4">Read this opening in as fast a voice as possible while remaining intelligible: 
+"全民制作人大家好，我是练习时长两年半的个人练习生哈基米,喜欢唱、跳、rap、篮球"</textarea>
+                        <div class="example-actions">
+                            <button type="button" class="example-insert">插入到文本框</button>
+                            <button type="button" class="example-copy">复制</button>
+                        </div>
+                    </div>
+
+                    <p class="note">说明：上述示例仅 <strong>Gemini TTS </strong>支持，中文指令理解弱于英文指令，可能出现不遵循指令、直接合成输入文本的情况。</p>
+                </div>
+                </details>
                 <div style="margin-top: 24px; text-align: center;">
                     <button class="btn" type="submit" id="submitBtn">开始语音合成</button>
                 </div>
@@ -200,10 +250,12 @@
                 verifyBtn.textContent = '口令已验证';
                 verifyBtn.classList.add('verified');
                 submitBtn.disabled = false;
+                submitBtn.title = '';
             } else {
                 verifyBtn.textContent = '口令未验证或过期';
                 verifyBtn.classList.remove('verified');
                 submitBtn.disabled = true;
+                submitBtn.title = '请先完成口令验证';
             }
         }
 
@@ -269,6 +321,7 @@
             const authToken = localStorage.getItem(AUTH_KEY);
 
             submitBtn.disabled = true;
+            submitBtn.title = '';
             statusDiv.classList.add('active');
             resultContainer.classList.remove('active');
             downloadBtn.classList.remove('visible');
@@ -383,9 +436,55 @@
                 // We can let the user proceed, but they might encounter errors.
             }
         }
-        initializeAvailableModels();
+        const geminiTip = document.getElementById('gemini-style-tip');
+        function toggleGeminiTip() {
+            if (!geminiTip) return;
+            const isGemini = (modelSelect.value || '').startsWith('gemini');
+            geminiTip.classList.toggle('hidden', !isGemini);
+        }
+        // 初始与变更时检查（不影响你现有的 refreshVoices 逻辑）
+        toggleGeminiTip();
+        modelSelect.addEventListener('change', toggleGeminiTip);
+
+        // —— 一键前缀：把 chip 的 data-style 前置到文本框 —— 
+        geminiTip?.addEventListener('click', (e) => {
+            const btn = e.target.closest('.chip');
+            if (!btn) return;
+            const prefix = btn.getAttribute('data-style') || '';
+            const current = textInput.value || '';
+            textInput.value = current.startsWith(prefix) ? current : (prefix + current);
+            textInput.focus();
+        });
+
+        // —— 示例插入到主文本框 —— 
+        geminiTip?.querySelectorAll('.example-insert').forEach(btn => {
+            btn.addEventListener('click', () => {
+            const ta = btn.closest('.example-box')?.querySelector('.example');
+            if (ta) {
+                textInput.value = ta.value.trim();
+                textInput.focus();
+            }
+            });
+        });
+
+        // —— 复制示例到剪贴板（带回退） —— 
+        geminiTip?.querySelectorAll('.example-copy').forEach(btn => {
+            btn.addEventListener('click', async () => {
+            const ta = btn.closest('.example-box')?.querySelector('.example');
+            if (!ta) return;
+            try {
+                await navigator.clipboard.writeText(ta.value.trim());
+                const old = btn.textContent;
+                btn.textContent = '已复制';
+                setTimeout(() => (btn.textContent = old), 1200);
+            } catch {
+                ta.select(); // 回退：选中文本，提示用户手动复制
+            }
+            });
+        });
 
         // Initial check
+        initializeAvailableModels();
         checkAuthStatus();
         charCountDiv.textContent = `0`; // Initialize char count
     </script>
