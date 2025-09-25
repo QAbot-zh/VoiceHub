@@ -680,7 +680,7 @@
 
                 resultBox.classList.add('active');
                 copyBtn.classList.remove('hidden');
-
+                const modelValue = document.getElementById('modelSelect')?.value || 'default';
                 if (cacheKey) {
                     const payload = {
                         name: fileToUpload.name || 'extracted_audio.wav',
