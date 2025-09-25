@@ -411,6 +411,7 @@
                   <td title="${record.name}">${truncateText(record.name, 20)}</td>
                   <td>${(record.size / 1024 / 1024).toFixed(2)}MB</td>
                   <td>${formatDate(record.timestamp)}</td>
+                  <td>${record.model || 'FunAudioLLM/SenseVoiceSmall'}</td>
                   <td class="text-preview" data-full-text="${record.text}" title="${record.text}">
                     ${truncateText(record.text, 30)}
                   </td>
@@ -558,7 +559,8 @@
 
                 const arrayBuffer = await processedFile.arrayBuffer();
                 const md5 = SparkMD5.ArrayBuffer.hash(arrayBuffer);
-                cacheKey = `sf_cache_${md5}`;
+                const modelValue = document.getElementById('modelSelect')?.value || 'default';
+                cacheKey = `sf_cache_${modelValue}_${md5}`;
 
                 const cachedRaw = localStorage.getItem(cacheKey);
                 if (cachedRaw) {
@@ -685,6 +687,7 @@
                         originalName: originalFile.name,
                         size: fileToUpload.size,
                         text: data.text,
+                        model: modelValue,
                         timestamp: Date.now(),
                         isExtracted: !!fileInput.processedFile
                     };
