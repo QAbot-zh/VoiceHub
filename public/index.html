@@ -561,13 +561,13 @@
                 const md5 = SparkMD5.ArrayBuffer.hash(arrayBuffer);
                 const modelValue = document.getElementById('modelSelect')?.value || 'default';
                 cacheKey = `sf_cache_${modelValue}_${md5}`;
-
+                console.log(`查找缓存 cacheKey: ${cacheKey}`)
                 const cachedRaw = localStorage.getItem(cacheKey);
                 if (cachedRaw) {
                     try {
                         const cachedData = JSON.parse(cachedRaw);
                         const matchName = isVideoFile(file) ? file.name : processedFile.name || file.name;
-                        if (cachedData.originalName === matchName) {
+                        if (cachedData.originalName === matchName && cachedData?.modelValue === modelValue) {
                             window.restoreRecord(cacheKey);
                             return;
                         }
