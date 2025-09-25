@@ -386,7 +386,14 @@ h2 {
     background: var(--primary-hover); transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
 }
-#fileName { margin-top: 8px; font-size: 0.85rem; color: var(--text-secondary); text-align: center; }
+#fileName {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--primary);
+    background: rgba(67, 97, 238, 0.08);
+    padding: 4px 10px;
+    border-radius: 6px;
+}
 
 /* STT Result Area */
 .result-container { /* Wrapper for STT result box */

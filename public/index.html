@@ -543,7 +543,7 @@
                     // 3. 原先支持的纯音频格式：直接显示
                 } else if (isSupportedAudioFile(file)) {
                     const sizeMB = (file.size / 1024 / 1024).toFixed(2);
-                    document.getElementById('fileName').textContent = `${file.name} (${sizeMB} MB)`;
+                    document.getElementById('fileName').textContent = `已上传：${file.name} (${sizeMB} MB)`;
 
                     // 4. 其他格式：提示不支持
                 } else {
