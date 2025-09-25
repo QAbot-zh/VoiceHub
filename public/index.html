@@ -108,7 +108,18 @@
                     <span id="fileName">未选择任何文件</span>
                     <!-- The download link will be injected here by JavaScript -->
                 </div>
-                <input type="hidden" name="model" value="FunAudioLLM/SenseVoiceSmall" />
+                <!-- <input type="hidden" name="model" value="FunAudioLLM/SenseVoiceSmall" /> -->
+                <div class="form-group">
+                    <label for="modelSelect">选择识别模型</label>
+                    <select id="modelSelect" name="model" required>
+                        <option value="FunAudioLLM/SenseVoiceSmall" selected>
+                        SenseVoiceSmall
+                        </option>
+                        <option value="TeleAI/TeleSpeechASR">
+                        TeleSpeechASR (方言友好)
+                        </option>
+                    </select>
+                </div>
                 <div style="margin-top: 24px; text-align: center;">
                     <button class="btn" type="submit" id="submitBtn">开始语音转写</button>
                 </div>
